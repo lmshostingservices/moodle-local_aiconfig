@@ -1,0 +1,9 @@
+{
+  "component": "local_aiconfig",
+  "version": "1.0.9",
+  "numeric_version": "2026061102009",
+  "build_id": "aiconfig07w04x007",
+  "build_timestamp": "2026-04-10T00:00:00.000Z",
+  "folder": "local_aiconfig",
+  "verification": "companion-registration-gradingform-benchmarks-v1.0.7"
+}
