@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_aiconfig';
-$plugin->version   = 2026071500005;  // 2026-07-15, v1.0.12
+$plugin->version   = 2026071500;  // 2026-07-15, v1.0.12
 $plugin->requires  = 2022041900;
 $plugin->supported = [400, 500];  // Moodle 4.0 to 5.x
 $plugin->maturity  = MATURITY_STABLE;
