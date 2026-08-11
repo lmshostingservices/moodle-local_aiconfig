@@ -1,9 +1,9 @@
 {
   "component": "local_aiconfig",
-  "version": "1.0.9",
-  "numeric_version": "2026061102009",
-  "build_id": "aiconfig07w04x007",
-  "build_timestamp": "2026-04-10T00:00:00.000Z",
+  "version": "1.0.15",
+  "numeric_version": "2026071500",
+  "build_id": "d468bdbc6a9bd470",
+  "build_timestamp": "2026-08-11T00:00:00.000Z",
   "folder": "local_aiconfig",
-  "verification": "companion-registration-gradingform-benchmarks-v1.0.7"
+  "verification": "10digit-migration-1.0.15"
 }
