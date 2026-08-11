@@ -39,7 +39,7 @@ if (isset($CFG) && !empty($CFG->debug)) {
         $GLOBALS['_aiconfig_php_errors'] = [];
     }
 
-    set_error_handler(function(int $errno, string $errstr, string $errfile, int $errline): bool {
+    set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline): bool {
         $GLOBALS['_aiconfig_php_errors'][] = [
             'errno'   => $errno,
             'errstr'  => $errstr,
@@ -52,7 +52,7 @@ if (isset($CFG) && !empty($CFG->debug)) {
     // Catch fatal errors that set_error_handler cannot intercept.
     // Write to PHP error_log — NOT to echo/print — to avoid injecting any
     // raw HTML into the page output before or after Moodle's DOCTYPE.
-    register_shutdown_function(function(): void {
+    register_shutdown_function(function (): void {
         $last = error_get_last();
         if ($last === null) {
             return;

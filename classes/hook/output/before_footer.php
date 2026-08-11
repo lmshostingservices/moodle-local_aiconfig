@@ -34,7 +34,6 @@ namespace local_aiconfig\hook\output;
  * Hook callback class for before_footer_html_generation.
  */
 class before_footer {
-
     /**
      * Inject the jQuery .default shim and PHP error bridge into the page footer.
      *
