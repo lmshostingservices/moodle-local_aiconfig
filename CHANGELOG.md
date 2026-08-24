@@ -1,5 +1,15 @@
 # AI Grader Central Config Changelog
 
+## Version 1.0.16 (24 August 2026)
+
+### Marketplace and documentation
+- Replaced the placeholder README with accurate installation, credential-priority, compatibility,
+  shared-credit and support guidance.
+- Clarified that compatible integrations read Central Config when implemented; the plugin does not
+  make every Moodle plugin inherit credentials automatically.
+- Clarified that Central Config stores credentials and does not consume AI credits itself.
+- Aligned public release metadata with Moodle 4.0 to 5.0 support.
+
 ## Version 1.0.2 (December 2025)
 
 ### Bug Fix
@@ -23,8 +33,8 @@
 - GDPR-compliant privacy provider
 - Full Moodle 4.0 - 5.x compatibility
 
-### Supported Plugins
-All AI Grader ecosystem plugins automatically detect and use Central Config:
+### Initial integration list
+The following plugins were documented as integrations at the time of the initial release:
 - AI Essay Grader (quiz_aigrader)
 - AI Essay Maker (local_essaymaker)
 - AI Knowledge Check (mod_knowledgecheck)
@@ -40,7 +50,7 @@ All AI Grader ecosystem plugins automatically detect and use Central Config:
 1. Download local_aiconfig_v1.0.2.zip
 2. Install via Site Administration > Plugins > Install plugins
 3. Configure Site ID and API Key in Local plugins > AI Grader Central Config
-4. All other AI plugins will automatically use these credentials
+4. Compatible plugins can read these credentials when their integration is enabled
 
 ### Granting Access to Custom Roles
 To allow a custom role (e.g., `lmshsadmin`) to manage AI Grader settings:
