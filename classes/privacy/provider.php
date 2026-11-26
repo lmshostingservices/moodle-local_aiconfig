@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,28 +12,37 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_aiconfig\privacy;
+
+use core_privacy\local\metadata\collection;
 
 /**
  * Privacy provider for AI Grader Central Config.
  *
+ * This plugin stores no personal data. With Bring your own AI on, plugins send request content from
+ * this site to the AI provider the administrator chose, and the daily licence check sends site details
+ * (no personal data) to LMS Labs.
+ *
  * @package    local_aiconfig
- * @copyright  2025 Essay Grader AI
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2026 LMS Labs <support@lmshostingservices.com>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-namespace local_aiconfig\privacy;
-
-defined('MOODLE_INTERNAL') || die();
-
-class provider implements \core_privacy\local\metadata\null_provider {
-    
+class provider implements \core_privacy\local\metadata\provider {
     /**
-     * Get the language string identifier for explaining why this plugin stores no data.
+     * Describe the data that leaves the site.
      *
-     * @return string
+     * @param collection $collection
+     * @return collection
      */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+    public static function get_metadata(collection $collection): collection {
+        $collection->add_external_location_link('aiprovider', [
+            'content' => 'privacy:metadata:aiprovider:content',
+        ], 'privacy:metadata:aiprovider');
+        $collection->add_external_location_link('lmslabs', [
+            'site' => 'privacy:metadata:lmslabs:site',
+        ], 'privacy:metadata:lmslabs');
+        return $collection;
     }
 }

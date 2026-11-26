@@ -42,3 +42,36 @@ their own service requests.
 ## Licence
 
 GNU GPL v3 or later.
+
+## Bring your own AI (1.1.0)
+
+Site administration > Plugins > Local plugins > **Bring your own AI**.
+
+With a yearly LMS Labs "Bring your own AI" licence, every LMS Labs plugin can run its AI on your own
+providers instead of LMS Labs credits. Pick a source for each kind of AI:
+
+| Kind | LMS Labs credits | Moodle AI (4.5+) | Your own key |
+|---|---|---|---|
+| Text | Yes | Any provider with Generate text | Anthropic, OpenAI, Google Gemini |
+| Images | Yes | OpenAI, Azure, Gemini, Bedrock | OpenAI |
+| Voice | Yes | Not supported by Moodle | Google Chirp 3 HD, ElevenLabs, OpenAI |
+| Reading images | Yes | Anthropic, OpenAI or Gemini provider | Anthropic, OpenAI, Google Gemini |
+| Video | Yes | Not supported by Moodle | Not yet |
+
+Own-key and Moodle AI calls go from your Moodle site straight to your provider. LMS Labs only sees the
+daily licence check (site address, versions, settings summary, active learner count).
+
+### For plugin developers
+
+```php
+use local_aiconfig\byok\ai;
+
+if (class_exists(ai::class) && ai::uses_own_ai('mod_example', ai::TEXT)) {
+    $json = ai::text('mod_example', $systemprompt, $userprompt, ['json' => true, 'maxtokens' => 4000]);
+} else {
+    // Existing LMS Labs credits call.
+}
+```
+
+`ai::image()` returns PNG bytes, `ai::speech()` returns MP3 bytes, and `ai::text()` with
+`options['images']` reads images. Calls throw `moodle_exception` on failure and never spend credits.
