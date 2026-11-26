@@ -16,6 +16,7 @@
   Anthropic (forced tool), and given in the prompt to Gemini and Moodle AI. JSON answers cut off at the
   token limit are reported as failures instead of being returned half-written.
 - `text()` takes a `timeout` option (seconds) for long generations that run from a scheduled task.
+- Anthropic structured answers keep empty objects (`{}`) as objects.
 
 ## Version 1.0.16 (24 August 2026)
 

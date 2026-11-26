@@ -284,6 +284,14 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame(['type' => 'tool', 'name' => 'scenario_plan'], $seen['tool_choice']);
         $this->assertSame($schema['schema'], $seen['tools'][0]['input_schema']);
         $this->assertStringNotContainsString('Reply with valid JSON', $seen['system']);
+        // The raw reply is what real calls get back: empty objects in a tool answer stay objects.
+        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body, $vendor, $raw) {
+            $this->assertTrue($raw);
+            return '{"stop_reason":"tool_use","content":[{"type":"tool_use","name":"scenario_plan",'
+                . '"input":{"title":"Drill","nodes":{"n9":{"choices":{}}},"tags":[]}}]}';
+        };
+        $this->assertSame('{"title":"Drill","nodes":{"n9":{"choices":{}}},"tags":[]}',
+            ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema]));
 
         set_config('vendor_text', 'openai', 'local_aiconfig');
         $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {

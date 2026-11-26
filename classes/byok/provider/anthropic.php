@@ -67,18 +67,28 @@ class anthropic {
                 'input_schema' => $options['schema']['schema']]];
             $body['tool_choice'] = ['type' => 'tool', 'name' => $tool];
         }
-        $data = http::post($options['endpoint'] ?? self::ENDPOINT, [
+        // A tool answer is read from the raw reply as well, so an empty object in it ({}) stays an object
+        // instead of turning into an empty list on the way through PHP arrays.
+        $reply = http::post($options['endpoint'] ?? self::ENDPOINT, [
             'x-api-key: ' . $key, 'anthropic-version: 2023-06-01',
-        ], $body, 'Anthropic', false, (int) ($options['timeout'] ?? 180));
+        ], $body, 'Anthropic', $tool !== '', (int) ($options['timeout'] ?? 180));
+        $data = is_string($reply) ? json_decode($reply, true) : $reply;
+        if (!is_array($data)) {
+            throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
+                'vendor' => 'Anthropic', 'detail' => 'unreadable reply',
+            ]);
+        }
+        $objects = is_string($reply) ? json_decode($reply) : null;
         if (!empty($options['json']) && ($data['stop_reason'] ?? '') === 'max_tokens') {
             throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
                 'vendor' => 'Anthropic', 'detail' => 'the answer was cut off at the token limit',
             ]);
         }
         $out = '';
-        foreach ($data['content'] ?? [] as $block) {
+        foreach ($data['content'] ?? [] as $index => $block) {
             if ($tool !== '' && ($block['type'] ?? '') === 'tool_use' && ($block['name'] ?? '') === $tool) {
-                return json_encode($block['input'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $input = $objects->content[$index]->input ?? $block['input'] ?? new \stdClass();
+                return json_encode($input, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
             if (($block['type'] ?? '') === 'text') {
                 $out .= $block['text'];
