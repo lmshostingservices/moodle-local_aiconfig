@@ -58,7 +58,7 @@ class gemini {
             $body['systemInstruction'] = ['parts' => [['text' => $system]]];
         }
         $data = http::post(self::BASE . rawurlencode($model) . ':generateContent', ['x-goog-api-key: ' . $key],
-            $body, 'Google Gemini');
+            $body, 'Google Gemini', false, (int) ($options['timeout'] ?? 180));
         $out = '';
         foreach ($data['candidates'][0]['content']['parts'] ?? [] as $part) {
             $out .= $part['text'] ?? '';

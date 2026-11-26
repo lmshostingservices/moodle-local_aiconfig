@@ -69,7 +69,7 @@ class anthropic {
         }
         $data = http::post($options['endpoint'] ?? self::ENDPOINT, [
             'x-api-key: ' . $key, 'anthropic-version: 2023-06-01',
-        ], $body, 'Anthropic');
+        ], $body, 'Anthropic', false, (int) ($options['timeout'] ?? 180));
         if (!empty($options['json']) && ($data['stop_reason'] ?? '') === 'max_tokens') {
             throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
                 'vendor' => 'Anthropic', 'detail' => 'the answer was cut off at the token limit',

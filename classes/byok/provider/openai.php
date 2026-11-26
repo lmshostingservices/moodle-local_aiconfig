@@ -68,7 +68,7 @@ class openai {
             $body['temperature'] = (float) $options['temperature'];
         }
         $data = http::post($options['endpoint'] ?? self::BASE . '/chat/completions', self::headers($key, $options),
-            $body, 'OpenAI');
+            $body, 'OpenAI', false, (int) ($options['timeout'] ?? 180));
         if (!empty($options['json']) && ($data['choices'][0]['finish_reason'] ?? '') === 'length') {
             throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
                 'vendor' => 'OpenAI', 'detail' => 'the answer was cut off at the token limit',

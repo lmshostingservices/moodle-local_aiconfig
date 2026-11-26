@@ -74,6 +74,7 @@ class ai {
      *                       OpenAI enforces it (strict json_schema), Anthropic answers through a forced tool
      *                       with that input schema, Gemini and the Moodle AI subsystem get it in the prompt.
      *                       Callers still validate the result.
+     *                       timeout (int seconds, default 180): for long generations run from a task.
      * @return string The text; with json or schema, a JSON string with any code fences removed.
      */
     public static function text(string $component, string $system, string $user, array $options = []): string {
