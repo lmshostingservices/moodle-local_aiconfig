@@ -27,10 +27,10 @@ use local_aiconfig\byok\router;
  * @category   test
  * @copyright  2026 LMS Labs <support@lmshostingservices.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_aiconfig\byok\licence
- * @covers     \local_aiconfig\byok\router
- * @covers     \local_aiconfig\byok\ai
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(licence::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(router::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(ai::class)]
 final class byok_test extends \advanced_testcase {
     /** @var string Secret half of the test key pair. */
     protected $secret;

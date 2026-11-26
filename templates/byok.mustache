@@ -56,7 +56,7 @@
             <div class="lx-eyebrow">{{#str}}byok_eyebrow, local_aiconfig{{/str}}</div>
             <h3 id="byok-licence-heading" class="lx-hero__title">
                 {{#str}}byok_licence_heading, local_aiconfig{{/str}}
-                <span class="mds-badge badge bg-{{badge}} mds-badge--pill">{{statelabel}}</span>
+                <span class="mds-badge badge mds-badge--pill mds-badge--subtle bg-{{badge}}-subtle text-{{badge}}-emphasis">{{statelabel}}</span>
             </h3>
             <p class="lx-hero__desc">{{statedesc}}</p>
             {{#active}}
@@ -108,15 +108,15 @@
 
         <div class="lx-services">
             {{#services}}
-            <fieldset class="lx-card lx-service">
-                <legend class="lx-service__head">
+            <section class="lx-card lx-service" role="radiogroup" aria-labelledby="byok-svc-{{service}}">
+                <div class="lx-service__head">
                     <span class="lx-service__icon" aria-hidden="true"><i class="fa-solid {{icon}}"></i></span>
                     <span>
-                        <span class="lx-service__name">{{name}}</span>
+                        <span class="lx-service__name" id="byok-svc-{{service}}">{{name}}</span>
                         <span class="lx-service__help">{{help}}</span>
                     </span>
                     <span class="mds-badge badge mds-badge--subtle {{#isown}}bg-success-subtle text-success-emphasis{{/isown}}{{^isown}}bg-secondary-subtle text-secondary-emphasis{{/isown}} lx-service__now">{{effective}}</span>
-                </legend>
+                </div>
                 <div class="lx-choices">
                     {{#options}}
                     <div class="lx-choice">
@@ -138,7 +138,7 @@
                 </div>
                 {{/hasvendors}}
                 {{#creditsonly}}<p class="lx-service__note">{{#str}}byok_creditsonly, local_aiconfig{{/str}}</p>{{/creditsonly}}
-            </fieldset>
+            </section>
             {{/services}}
         </div>
 
@@ -153,6 +153,7 @@
                 <input class="form-control mds-input-field" type="password" id="key_{{vendor}}" name="key_{{vendor}}"
                        placeholder="{{#saved}}{{hint}}{{/saved}}{{^saved}}{{#str}}byok_key_placeholder, local_aiconfig{{/str}}{{/saved}}" autocomplete="new-password">
                 {{#saved}}
+                <div class="lx-key__help">{{#str}}byok_keykeep, local_aiconfig{{/str}}</div>
                 <div class="form-check lx-key__clear">
                     <input class="form-check-input" type="checkbox" id="clear_{{vendor}}" name="clear_{{vendor}}" value="1">
                     <label class="form-check-label" for="clear_{{vendor}}">{{#str}}byok_key_clear, local_aiconfig{{/str}}</label>
@@ -185,6 +186,7 @@
     </div>
     <div class="lx-card lx-usage">
         {{#hasusage}}
+        <div class="table-responsive">
         <table class="table lx-table">
             <thead><tr>
                 <th scope="col">{{#str}}byok_usage_plugin, local_aiconfig{{/str}}</th>
@@ -196,6 +198,7 @@
                 {{#usage}}<tr><td>{{name}}</td><td>{{service}}</td><td>{{source}}</td><td class="text-end lx-num">{{calls}}</td></tr>{{/usage}}
             </tbody>
         </table>
+        </div>
         {{/hasusage}}
         {{^hasusage}}
         <div class="lx-empty">

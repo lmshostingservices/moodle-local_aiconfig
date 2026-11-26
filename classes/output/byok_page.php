@@ -103,19 +103,23 @@ class byok_page {
                 'vendor' => $vendor,
                 'label' => $label,
                 'saved' => $saved !== '',
-                'hint' => $saved !== '' ? get_string('byok_keyhint', 'local_aiconfig', '…' . substr($saved, -4)) : '',
+                'hint' => $saved !== '' ? get_string('byok_keyhint', 'local_aiconfig', substr($saved, -4)) : '',
             ];
         }
 
         $usage = array_map(function($row) {
             return [
                 'component' => $row->component,
-                'name' => get_string('pluginname', $row->component),
+                'name' => get_string_manager()->string_exists('pluginname', $row->component)
+                    ? get_string('pluginname', $row->component) : $row->component,
                 'service' => get_string('byok_service_' . $row->service, 'local_aiconfig'),
                 'source' => get_string('byok_source_' . $row->source, 'local_aiconfig'),
                 'calls' => (int) $row->calls,
             ];
         }, usage::recent(30));
+        usort($usage, function($a, $b) {
+            return $b['calls'] <=> $a['calls'];
+        });
 
         $statekey = $status['byok'] ? ($status['ingrace'] ? 'grace' : 'active') : ($status['key'] ? $status['reason'] : 'none');
         return [

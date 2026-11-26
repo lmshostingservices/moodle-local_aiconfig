@@ -40,6 +40,8 @@ class http {
         if (defined('PHPUNIT_TEST') && PHPUNIT_TEST && isset($GLOBALS['local_aiconfig_byok_mock'])) {
             return ($GLOBALS['local_aiconfig_byok_mock'])($url, $headers, $body, $vendor, $raw);
         }
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
         $curl = new \curl(['ignoresecurity' => false]);
         $curl->setHeader(array_merge(['Content-Type: application/json'], $headers));
         $reply = $curl->post($url, json_encode($body), ['CURLOPT_TIMEOUT' => $timeout]);

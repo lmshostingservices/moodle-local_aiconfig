@@ -135,13 +135,16 @@
     margin: 0;
     min-width: 0;
 }
+.local-aiconfig-byok .lx-hero__title .mds-badge {
+    font-size: 0.875rem;
+    padding: 4px 10px;
+}
 .local-aiconfig-byok .lx-service__head {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 12px;
     width: 100%;
-    float: none;
     margin-bottom: 16px;
     font-size: 1rem;
 }
@@ -294,13 +297,25 @@
 .local-aiconfig-byok .mds-btn.btn-primary {
     box-shadow: var(--lx-shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.local-aiconfig-byok .mds-btn.btn-secondary {
+.local-aiconfig-byok .lx-key__help {
+    font-size: 0.875rem;
+    color: var(--byok-muted);
+    margin-top: 4px;
+}
+.local-aiconfig-byok .mds-btn.btn.btn-secondary {
+    --bs-btn-bg: var(--byok-surface);
+    --bs-btn-hover-bg: var(--byok-subtle);
+    --bs-btn-active-bg: var(--byok-strong);
+    --bs-btn-color: var(--byok-text);
+    --bs-btn-hover-color: var(--byok-text);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-border-color: transparent;
     background: var(--byok-surface);
     color: var(--byok-text);
     border-color: transparent;
     box-shadow: var(--lx-shadow-xs), inset 0 0 0 1px var(--byok-control);
 }
-.local-aiconfig-byok .mds-btn.btn-secondary:hover {
+.local-aiconfig-byok .mds-btn.btn.btn-secondary:hover {
     background: var(--byok-subtle);
     box-shadow: var(--lx-shadow-xs), inset 0 0 0 1px var(--byok-control-hover);
 }
@@ -322,14 +337,9 @@
     font-weight: 600;
 }
 .local-aiconfig-byok .lx-savebar {
-    position: sticky;
-    bottom: 0;
     display: flex;
     justify-content: flex-end;
-    padding: 16px 0;
-    margin-top: 16px;
-    background: linear-gradient(to top, var(--byok-subtle) 60%, transparent);
-    z-index: 2;
+    margin-top: 20px;
 }
 
 /* Usage */

@@ -317,6 +317,8 @@ class licence {
      * @return array|null Decoded reply, or null.
      */
     protected static function post(string $path, array $body, ?string $key): ?array {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
         $curl = new \curl(['ignoresecurity' => false]);
         $headers = ['Content-Type: application/json', 'Accept: application/json', 'X-LMSLabs-Site: ' . self::site_host()];
         if ($key) {
