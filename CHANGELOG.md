@@ -18,6 +18,9 @@
 - `text()` takes a `timeout` option (seconds) for long generations that run from a scheduled task.
 - Anthropic structured answers keep empty objects (`{}`) as objects.
 - `speech()` takes a `format` option: `mp3` (default) or `ogg` (Ogg Opus) for plugins that play Ogg audio.
+- `image()` takes a `reference` picture to edit (own OpenAI GPT image key only; `image_edits()` says when
+  it is available), for plugins that draw a picture in steps.
+- `speech()` takes a `samplerate` option for Google voices.
 - `speech()` takes a `rate` option (speaking rate) for Google and OpenAI voices.
 
 ## Version 1.0.16 (24 August 2026)

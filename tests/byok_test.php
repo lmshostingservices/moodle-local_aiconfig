@@ -285,6 +285,53 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame('hi-IN-Chirp3-HD-Aoede', $seen['voice']['name']);
     }
 
+    public function test_image_edits_need_own_openai_gpt_image_key(): void {
+        set_config('licencekey', $this->key(), 'local_aiconfig');
+        $this->assertFalse(ai::image_edits('mod_example'));
+        set_config('src_image', 'moodle', 'local_aiconfig');
+        $this->assertFalse(ai::image_edits('mod_example'));
+        set_config('src_image', 'ownkey', 'local_aiconfig');
+        set_config('vendor_image', 'openai', 'local_aiconfig');
+        set_config('key_openai', 'sk-open', 'local_aiconfig');
+        $this->assertTrue(ai::image_edits('mod_example'));
+        $seen = [];
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
+            $seen[] = ['url' => $url, 'body' => $body];
+            return ['data' => [['b64_json' => base64_encode('PNG2')]]];
+        };
+        $this->assertSame('PNG2', ai::image('mod_example', 'Same picture, now red.', [
+            'size' => '1536x1024', 'reference' => ['data' => 'PNG1', 'mime' => 'image/png'],
+        ]));
+        $this->assertStringEndsWith('/images/edits', $seen[0]['url']);
+        $this->assertSame('Same picture, now red.', $seen[0]['body']['prompt']);
+        $this->assertSame('1536x1024', $seen[0]['body']['size']);
+        $this->assertInstanceOf(\CURLStringFile::class, $seen[0]['body']['image']);
+        $this->assertSame('PNG1', $seen[0]['body']['image']->data);
+        $this->assertSame('image/png', $seen[0]['body']['image']->mime);
+        ai::image('mod_example', 'A new picture.');
+        $this->assertStringEndsWith('/images/generations', $seen[1]['url']);
+        set_config('model_openai_image', 'dall-e-3', 'local_aiconfig');
+        $this->assertFalse(ai::image_edits('mod_example'));
+        $this->expectException(\moodle_exception::class);
+        ai::image('mod_example', 'Edit.', ['reference' => ['data' => 'PNG1', 'mime' => 'image/png']]);
+    }
+
+    public function test_speech_sample_rate_on_google(): void {
+        set_config('licencekey', $this->key(), 'local_aiconfig');
+        set_config('src_voice', 'ownkey', 'local_aiconfig');
+        set_config('vendor_voice', 'googletts', 'local_aiconfig');
+        set_config('key_gemini', 'g-key', 'local_aiconfig');
+        $seen = [];
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
+            $seen = $body;
+            return ['audioContent' => base64_encode('MP3')];
+        };
+        ai::speech('mod_example', 'Hello', ['samplerate' => 24000]);
+        $this->assertSame(24000, $seen['audioConfig']['sampleRateHertz']);
+        ai::speech('mod_example', 'Hello');
+        $this->assertArrayNotHasKey('sampleRateHertz', $seen['audioConfig']);
+    }
+
     public function test_speech_in_ogg_on_openai_and_elevenlabs(): void {
         set_config('licencekey', $this->key(), 'local_aiconfig');
         set_config('src_voice', 'ownkey', 'local_aiconfig');

@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_aiconfig';
-$plugin->version   = 2026112600;  // 10-digit Marketplace scheme, v1.1.0.
+$plugin->version   = 2026112601;  // 10-digit Marketplace scheme, v1.1.0.
 $plugin->requires  = 2022041900;
 $plugin->supported = [400, 500];  // Moodle 4.0 to 5.x
 $plugin->maturity  = MATURITY_STABLE;

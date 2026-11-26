@@ -77,6 +77,7 @@ $string['byok_manual_heading'] = 'Have a licence key from LMS Labs support?';
 $string['byok_manual_label'] = 'Licence key';
 $string['byok_manual_save'] = 'Install key';
 $string['byok_moodleai_link'] = 'Set up Moodle AI providers';
+$string['byok_noimageedits'] = 'Editing a picture needs your own OpenAI image key (GPT image models). Moodle AI and DALL-E can only draw new pictures.';
 $string['byok_notavailable'] = 'Bring your own AI is not set up for {$a} on this site.';
 $string['byok_paiduntil'] = 'Paid until';
 $string['byok_plan'] = 'Plan';

@@ -105,10 +105,27 @@ class openai {
      * @param string $key
      * @param string $model
      * @param string $prompt
-     * @param array $options size, quality
+     * @param array $options size, quality, reference (['data' => raw bytes, 'mime' => type]: edit that picture)
      * @return string Raw bytes.
      */
     public static function image(string $key, string $model, string $prompt, array $options): string {
+        if (!empty($options['reference'])) {
+            if (!self::edits($model)) {
+                throw new \moodle_exception('byok_noimageedits', 'local_aiconfig');
+            }
+            $mime = (string) $options['reference']['mime'];
+            $ext = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][$mime] ?? 'png';
+            $data = http::post_form(self::BASE . '/images/edits', self::headers($key, $options), [
+                'model' => $model, 'prompt' => $prompt, 'n' => '1', 'size' => $options['size'] ?? '1024x1024',
+                'quality' => $options['quality'] ?? 'medium',
+                'image' => new \CURLStringFile((string) $options['reference']['data'], 'reference.' . $ext, $mime),
+            ], 'OpenAI');
+            $b64 = $data['data'][0]['b64_json'] ?? '';
+            if ($b64 === '') {
+                http::empty_reply('OpenAI');
+            }
+            return base64_decode($b64);
+        }
         $body = ['model' => $model, 'prompt' => $prompt, 'n' => 1, 'size' => $options['size'] ?? '1024x1024'];
         if (strpos($model, 'dall-e') === 0) {
             $body['response_format'] = 'b64_json';
@@ -121,6 +138,16 @@ class openai {
             http::empty_reply('OpenAI');
         }
         return base64_decode($b64);
+    }
+
+    /**
+     * Whether the image model can edit a picture it is given (the GPT image models; not DALL-E).
+     *
+     * @param string $model
+     * @return bool
+     */
+    public static function edits(string $model): bool {
+        return strpos($model, 'dall-e') !== 0;
     }
 
     /**

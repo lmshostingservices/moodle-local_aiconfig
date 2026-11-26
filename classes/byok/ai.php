@@ -105,11 +105,17 @@ class ai {
      *
      * @param string $component Calling plugin.
      * @param string $prompt
-     * @param array $options size ("1024x1024", "1536x1024" or "1024x1536"), quality ("low"|"medium"|"high").
+     * @param array $options size ("1024x1024", "1536x1024" or "1024x1536"), quality ("low"|"medium"|"high"),
+     *                       reference (['data' => raw bytes, 'mime' => 'image/png'|'image/jpeg'|'image/webp']): edit that
+     *                       picture instead of drawing a new one. Only an own OpenAI GPT image key can; check
+     *                       {@see self::image_edits()} first.
      * @return string Raw PNG (or JPEG) bytes.
      */
     public static function image(string $component, string $prompt, array $options = []): string {
         $source = self::require_source($component, router::IMAGE);
+        if (!empty($options['reference']) && !self::image_edits($component)) {
+            throw new \moodle_exception('byok_noimageedits', 'local_aiconfig');
+        }
         $options += ['size' => '1024x1024', 'quality' => 'medium'];
         $started = microtime(true);
         if ($source === router::MOODLE) {
@@ -123,13 +129,28 @@ class ai {
     }
 
     /**
+     * Whether this plugin's own-AI images can edit a given picture (image(), option reference).
+     *
+     * @param string $component
+     * @return bool
+     */
+    public static function image_edits(string $component): bool {
+        if (router::source($component, router::IMAGE) !== router::OWNKEY) {
+            return false;
+        }
+        $vendor = router::vendor(router::IMAGE);
+        return $vendor === 'openai' && provider\openai::edits(self::model($vendor, 'image'));
+    }
+
+    /**
      * Text to speech.
      *
      * @param string $component Calling plugin.
      * @param string $text
      * @param array $options language (BCP-47, e.g. "en-AU"), voice (vendor voice name or id; blank = admin default),
      *                       format ('mp3', the default, or 'ogg' for Ogg Opus, which some plugins play as audio/ogg),
-     *                       rate (speaking rate, 0.25 to 4, 1 = normal; Google and OpenAI voices).
+     *                       rate (speaking rate, 0.25 to 4, 1 = normal; Google and OpenAI voices),
+     *                       samplerate (Hz, Google voices only; others keep their own).
      * @return string Raw audio bytes in the requested format.
      */
     public static function speech(string $component, string $text, array $options = []): string {

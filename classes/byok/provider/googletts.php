@@ -46,6 +46,9 @@ class googletts {
         if (!empty($options['rate'])) {
             $audio['speakingRate'] = (float) $options['rate'];
         }
+        if (!empty($options['samplerate'])) {
+            $audio['sampleRateHertz'] = (int) $options['samplerate'];
+        }
         $data = http::post(self::ENDPOINT, ['x-goog-api-key: ' . $key], [
             'input' => ['text' => $text],
             'voice' => ['languageCode' => $language, 'name' => $voice],
