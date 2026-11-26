@@ -39,6 +39,9 @@
         "subscription": true,
         "claimpending": false,
         "tiers": [{"tier": "pro", "name": "Pro", "detail": "Up to 250 active learners a month", "checked": true}],
+        "hasplugin": true,
+        "pluginplan": {"component": "quiz_aigrader", "name": "AI Essay Grader only",
+            "detail": "US$500 a year plus GST. Covers AI Essay Grader on this site."},
         "hasmoodleai": true,
         "moodleai": "https://example.com/admin/settings.php?section=aiprovider",
         "services": [{"service": "text", "name": "Text", "help": "Writing, marking and feedback.", "icon": "fa-align-left",
@@ -97,18 +100,44 @@
         <form method="post" action="{{url}}" class="lx-subscribe">
             <input type="hidden" name="sesskey" value="{{sesskey}}">
             <input type="hidden" name="action" value="subscribe">
-            <div class="lx-eyebrow" id="byok-tier-heading">{{#str}}byok_tier_heading, local_aiconfig{{/str}}</div>
-            <div class="lx-choices lx-tiers" role="radiogroup" aria-labelledby="byok-tier-heading">
-                {{#tiers}}
+            {{#hasplugin}}
+            <div class="lx-eyebrow" id="byok-plan-heading">{{#str}}byok_plan_heading, local_aiconfig{{/str}}</div>
+            <div class="lx-choices lx-plans" role="radiogroup" aria-labelledby="byok-plan-heading">
+                {{#pluginplan}}
                 <div class="lx-choice">
-                    <input class="mds-choicebox-input visually-hidden" type="radio" name="tier" id="tier_{{tier}}" value="{{tier}}" {{#checked}}checked{{/checked}}>
-                    <label class="mds-choicebox" for="tier_{{tier}}">
-                        <i class="fa-solid fa-users lx-choice__icon" aria-hidden="true"></i>
+                    <input class="mds-choicebox-input visually-hidden" type="radio" name="plan" id="plan_plugin" value="plugin" checked>
+                    <label class="mds-choicebox" for="plan_plugin">
+                        <i class="fa-solid fa-puzzle-piece lx-choice__icon" aria-hidden="true"></i>
                         <span class="lx-choice__label">{{name}}</span>
                         <span class="lx-choice__detail">{{detail}}</span>
                     </label>
+                    <input type="hidden" name="component" value="{{component}}">
                 </div>
-                {{/tiers}}
+                {{/pluginplan}}
+                <div class="lx-choice">
+                    <input class="mds-choicebox-input visually-hidden" type="radio" name="plan" id="plan_all" value="all">
+                    <label class="mds-choicebox" for="plan_all">
+                        <i class="fa-solid fa-layer-group lx-choice__icon" aria-hidden="true"></i>
+                        <span class="lx-choice__label">{{#str}}byok_plan_all, local_aiconfig{{/str}}</span>
+                        <span class="lx-choice__detail">{{#str}}byok_plan_all_detail, local_aiconfig{{/str}}</span>
+                    </label>
+                </div>
+            </div>
+            {{/hasplugin}}
+            <div class="lx-tiers-block">
+                <div class="lx-eyebrow" id="byok-tier-heading">{{#str}}byok_tier_heading, local_aiconfig{{/str}}</div>
+                <div class="lx-choices lx-tiers" role="radiogroup" aria-labelledby="byok-tier-heading">
+                    {{#tiers}}
+                    <div class="lx-choice">
+                        <input class="mds-choicebox-input visually-hidden" type="radio" name="tier" id="tier_{{tier}}" value="{{tier}}" {{#checked}}checked{{/checked}}>
+                        <label class="mds-choicebox" for="tier_{{tier}}">
+                            <i class="fa-solid fa-users lx-choice__icon" aria-hidden="true"></i>
+                            <span class="lx-choice__label">{{name}}</span>
+                            <span class="lx-choice__detail">{{detail}}</span>
+                        </label>
+                    </div>
+                    {{/tiers}}
+                </div>
             </div>
             <div class="lx-subscribe__actions">
                 <button type="submit" class="mds-btn btn btn-primary mds-btn--size-lg">

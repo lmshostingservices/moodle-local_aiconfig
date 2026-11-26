@@ -51,6 +51,12 @@ class licence {
     /** Yearly "All plugins" tiers, by learner count. */
     const TIERS = ['starter' => 50, 'pro' => 250, 'rto' => 500, 'enterprise' => 0];
 
+    /** LMS Labs plugins that can be licensed one at a time for Bring your own AI. */
+    const PLUGINS = ['quiz_aigrader', 'local_lmslabs_coach'];
+
+    /** Yearly price of a single-plugin licence, in US dollars, before GST. Stripe adds GST where it applies. */
+    const PLUGIN_PRICE_USD = 500;
+
     /**
      * Decode and verify a key.
      *
@@ -284,21 +290,46 @@ class licence {
     }
 
     /**
-     * Start a checkout for the "All plugins" plan: store a fresh claim secret and return the checkout URL.
+     * Start a checkout: store a fresh claim secret and return the checkout URL.
      *
-     * @param string $tier starter, pro, rto or enterprise.
+     * The "All plugins" plan is priced by plan size (tier). A single-plugin licence covers one LMS Labs
+     * plugin, named by its Frankenstyle component, for PLUGIN_PRICE_USD a year plus GST, whatever the size.
+     *
+     * @param string $tier starter, pro, rto or enterprise (All plugins plan only).
+     * @param string $component A plugin's Frankenstyle component for a single-plugin licence, or '' for All plugins.
      * @return \moodle_url
      */
-    public static function checkout_url(string $tier = 'pro'): \moodle_url {
+    public static function checkout_url(string $tier = 'pro', string $component = ''): \moodle_url {
         $secret = bin2hex(random_bytes(32));
         set_config('claimsecret', $secret, 'local_aiconfig');
-        return new \moodle_url(self::server_url() . '/v1/checkout', [
+        $params = [
             'site' => self::site_host(),
             'product' => 'all',
             'tier' => array_key_exists($tier, self::TIERS) ? $tier : 'pro',
+        ];
+        if ($component !== '' && self::is_lmslabs_plugin($component)) {
+            $params = ['site' => self::site_host(), 'product' => $component, 'billing' => 'yearly'];
+        }
+        return new \moodle_url(self::server_url() . '/v1/checkout', $params + [
             'claim' => hash('sha256', $secret),
             'return' => (new \moodle_url('/local/aiconfig/byok.php', ['action' => 'return']))->out(false),
         ]);
+    }
+
+    /**
+     * Is this an installed plugin that can run on its own AI with a single-plugin licence?
+     *
+     * Any installed plugin that calls the shared engine qualifies. The list is kept here so the checkout
+     * never sends an arbitrary component to the licence server.
+     *
+     * @param string $component
+     * @return bool
+     */
+    public static function is_lmslabs_plugin(string $component): bool {
+        if (!in_array($component, self::PLUGINS, true)) {
+            return false;
+        }
+        return \core_component::get_component_directory($component) !== null;
     }
 
     /**

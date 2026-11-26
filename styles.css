@@ -12,7 +12,7 @@
     --byok-control: var(--mds-border-interactive-secondary-default, #d5d9de);
     --byok-control-hover: var(--mds-border-interactive-secondary-hover, #b9bfc6);
     --byok-text: var(--mds-text-default, #1d2125);
-    --byok-muted: var(--mds-text-muted, #6a737b);
+    --byok-muted: #5c646b;
     --byok-tint: rgba(15, 108, 191, 0.08);
     --lx-ring: 0 0 0 3px rgba(15, 108, 191, 0.22);
     --lx-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.06);
@@ -437,4 +437,32 @@
     .local-aiconfig-byok *::after {
         transition: none !important;
     }
+}
+
+/* Single-plugin plan: plan size applies only to All plugins. */
+.local-aiconfig-byok .lx-subscribe:has(#plan_plugin:checked) .lx-tiers-block {
+    display: none;
+}
+
+.local-aiconfig-byok .lx-plans {
+    margin-bottom: var(--mds-spacing-lg, 1.25rem);
+}
+
+/* Dark mode: Moodle's primary blue is too light for white text, so buttons use a deeper blue (4.9:1). */
+[data-bs-theme="dark"] .local-aiconfig-byok .mds-btn.btn-primary {
+    --bs-btn-bg: #2d74b5;
+    --bs-btn-border-color: #2d74b5;
+    --bs-btn-hover-bg: #2668a3;
+    --bs-btn-hover-border-color: #2668a3;
+    --bs-btn-active-bg: #215c91;
+    --bs-btn-active-border-color: #215c91;
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+    background-color: #2d74b5;
+    border-color: #2d74b5;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .local-aiconfig-byok .mds-btn.btn-primary:hover {
+    background-color: #2668a3;
 }

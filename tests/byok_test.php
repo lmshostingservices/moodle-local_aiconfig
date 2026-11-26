@@ -210,6 +210,26 @@ final class byok_test extends \advanced_testcase {
         unset($GLOBALS['local_aiconfig_licence_mock']);
     }
 
+    public function test_single_plugin_checkout(): void {
+        // Only a known, installed LMS Labs plugin can be bought on its own; anything else falls back to All plugins.
+        $url = licence::checkout_url('rto', 'mod_example');
+        $this->assertSame('all', $url->get_param('product'));
+        $this->assertSame('rto', $url->get_param('tier'));
+        if (!\core_component::get_component_directory('quiz_aigrader')) {
+            $this->assertFalse(licence::is_lmslabs_plugin('quiz_aigrader'));
+            return;
+        }
+        $url = licence::checkout_url('rto', 'quiz_aigrader');
+        $this->assertSame('quiz_aigrader', $url->get_param('product'));
+        $this->assertSame('yearly', $url->get_param('billing'));
+        $this->assertNull($url->get_param('tier'));
+        $this->assertNotEmpty($url->get_param('claim'));
+        $this->assertSame(500, licence::PLUGIN_PRICE_USD);
+        set_config('licencekey', $this->key(['products' => ['quiz_aigrader']]), 'local_aiconfig');
+        $this->assertTrue(licence::allows('quiz_aigrader'));
+        $this->assertFalse(licence::allows('mod_example'));
+    }
+
     public function test_voice_cannot_use_moodle_ai_and_video_is_credits_only(): void {
         set_config('licencekey', $this->key(), 'local_aiconfig');
         set_config('src_voice', 'moodle', 'local_aiconfig');

@@ -51,9 +51,10 @@ class byok_page {
      * Build the context.
      *
      * @param \renderer_base $output
+     * @param string $forplugin A plugin component to offer a single-plugin licence for, or ''.
      * @return array
      */
-    public static function export(\renderer_base $output): array {
+    public static function export(\renderer_base $output, string $forplugin = ''): array {
         $status = licence::status();
         $sesskey = sesskey();
         $url = (new \moodle_url('/local/aiconfig/byok.php'))->out(false);
@@ -147,6 +148,16 @@ class byok_page {
             ];
         }
         $claimpending = (string) get_config('local_aiconfig', 'claimsecret') !== '';
+        $pluginplan = null;
+        if ($forplugin !== '' && licence::is_lmslabs_plugin($forplugin)) {
+            $pluginname = get_string('pluginname', $forplugin);
+            $pluginplan = [
+                'component' => $forplugin,
+                'name' => get_string('byok_plan_plugin', 'local_aiconfig', $pluginname),
+                'detail' => get_string('byok_plan_plugin_detail', 'local_aiconfig', (object) [
+                    'price' => licence::PLUGIN_PRICE_USD, 'plugin' => $pluginname]),
+            ];
+        }
         return [
             'url' => $url,
             'sesskey' => $sesskey,
@@ -156,6 +167,12 @@ class byok_page {
                 'exp' => $status['exp'] ? userdate($status['exp'], $fmt) : '',
                 'grace' => $status['until'] ? userdate($status['until'], $fmt) : '',
                 'site' => licence::site_host(),
+                'plugins' => implode(', ', array_map(function ($component) {
+                    return get_string_manager()->string_exists('pluginname', $component)
+                        ? get_string('pluginname', $component) : $component;
+                }, array_filter($status['products'] ?: ['local_lmslabs_coach'], function ($c) {
+                    return $c !== '*';
+                }))),
             ]),
             'badge' => ['active' => 'success', 'grace' => 'warning', 'past_due' => 'warning', 'ending' => 'warning',
                 'revoked' => 'danger', 'expired' => 'danger', 'invalid' => 'danger', 'wrongsite' => 'danger'][$statekey]
@@ -164,6 +181,8 @@ class byok_page {
             'ingrace' => $status['byok'] && $statekey !== 'active',
             'subscription' => $status['subscription'],
             'tiers' => $tiers,
+            'pluginplan' => $pluginplan,
+            'hasplugin' => $pluginplan !== null,
             'claimpending' => $claimpending && !$status['byok'],
             'haskey' => $status['key'],
             'plan' => $status['plan'] === '' ? '' : ucfirst($status['plan']),
