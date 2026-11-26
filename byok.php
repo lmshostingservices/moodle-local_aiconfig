@@ -35,11 +35,33 @@ require_capability('local/aiconfig:manage', $context);
 $action = optional_param('action', '', PARAM_ALPHA);
 $pageurl = new moodle_url('/local/aiconfig/byok.php');
 
+if ($action === 'return') {
+    // Back from Stripe Checkout. No sesskey: Stripe sends the browser here. Claiming only fetches a key for
+    // this site with a secret this site made, so a forged visit can do no more than install the site's own key.
+    $payload = licence::claim();
+    $pending = (string) get_config('local_aiconfig', 'claimsecret') !== '';
+    redirect($pageurl, get_string($payload ? 'byok_claimed' : ($pending ? 'byok_claimpending' : 'byok_checkoutcancelled'),
+        'local_aiconfig'), null, $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO);
+}
+
 if ($action !== '') {
     require_sesskey();
     switch ($action) {
         case 'subscribe':
-            redirect(licence::checkout_url('all'));
+            redirect(licence::checkout_url(optional_param('tier', 'pro', PARAM_ALPHA)));
+            break;
+        case 'claim':
+            $payload = licence::claim();
+            redirect($pageurl, get_string($payload ? 'byok_claimed' : 'byok_claimpending', 'local_aiconfig'), null,
+                $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO);
+            break;
+        case 'manage':
+            $portal = licence::portal_url();
+            if ($portal) {
+                redirect(new moodle_url($portal));
+            }
+            redirect($pageurl, get_string('byok_portalfailed', 'local_aiconfig'), null,
+                \core\output\notification::NOTIFY_ERROR);
             break;
         case 'check':
             $ok = licence::check();

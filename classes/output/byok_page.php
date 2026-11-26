@@ -121,7 +121,30 @@ class byok_page {
             return $b['calls'] <=> $a['calls'];
         });
 
-        $statekey = $status['byok'] ? ($status['ingrace'] ? 'grace' : 'active') : ($status['key'] ? $status['reason'] : 'none');
+        if ($status['byok']) {
+            if ($status['exp'] && $status['exp'] < time()) {
+                $statekey = 'grace';
+            } else if ($status['state'] === 'past_due') {
+                $statekey = 'past_due';
+            } else if ($status['ending']) {
+                $statekey = 'ending';
+            } else {
+                $statekey = 'active';
+            }
+        } else {
+            $statekey = $status['key'] ? $status['reason'] : 'none';
+        }
+        $tiers = [];
+        foreach (licence::TIERS as $tier => $learners) {
+            $tiers[] = [
+                'tier' => $tier,
+                'name' => get_string('byok_tier_' . $tier, 'local_aiconfig'),
+                'detail' => $learners ? get_string('byok_tier_learners', 'local_aiconfig', $learners)
+                    : get_string('byok_tier_unlimited', 'local_aiconfig'),
+                'checked' => $tier === 'pro',
+            ];
+        }
+        $claimpending = (string) get_config('local_aiconfig', 'claimsecret') !== '';
         return [
             'url' => $url,
             'sesskey' => $sesskey,
@@ -129,17 +152,23 @@ class byok_page {
             'statelabel' => get_string('byok_state_' . $statekey, 'local_aiconfig'),
             'statedesc' => get_string('byok_statedesc_' . $statekey, 'local_aiconfig', (object) [
                 'exp' => $status['exp'] ? userdate($status['exp'], $fmt) : '',
-                'grace' => $status['graceuntil'] ? userdate($status['graceuntil'], $fmt) : '',
+                'grace' => $status['until'] ? userdate($status['until'], $fmt) : '',
                 'site' => licence::site_host(),
             ]),
-            'badge' => ['active' => 'success', 'grace' => 'warning'][$statekey] ?? 'secondary',
+            'badge' => ['active' => 'success', 'grace' => 'warning', 'past_due' => 'warning', 'ending' => 'warning',
+                'revoked' => 'danger', 'expired' => 'danger', 'invalid' => 'danger', 'wrongsite' => 'danger'][$statekey]
+                ?? 'secondary',
             'active' => $status['byok'],
-            'ingrace' => $status['ingrace'],
+            'ingrace' => $status['byok'] && $statekey !== 'active',
+            'subscription' => $status['subscription'],
+            'tiers' => $tiers,
+            'claimpending' => $claimpending && !$status['byok'],
             'haskey' => $status['key'],
             'plan' => $status['plan'] === '' ? '' : ucfirst($status['plan']),
             'allplugins' => in_array('*', $status['products'], true),
             'renews' => $status['renews'] ? userdate($status['renews'], $fmt) : '',
             'exp' => $status['exp'] ? userdate($status['exp'], $fmt) : '',
+            'keyid' => $status['id'],
             'checked' => $status['checked'] ? userdate($status['checked'], get_string('strftimedatetimeshort', 'langconfig')) : '',
             'services' => $services,
             'keys' => $keys,

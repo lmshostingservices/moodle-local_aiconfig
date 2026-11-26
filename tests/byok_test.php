@@ -51,7 +51,7 @@ final class byok_test extends \advanced_testcase {
      * Clean up the HTTP mock.
      */
     protected function tearDown(): void {
-        unset($GLOBALS['local_aiconfig_byok_mock']);
+        unset($GLOBALS['local_aiconfig_byok_mock'], $GLOBALS['local_aiconfig_licence_mock']);
         parent::tearDown();
     }
 
@@ -62,11 +62,23 @@ final class byok_test extends \advanced_testcase {
      * @return string
      */
     protected function key(array $overrides = []): string {
-        $payload = json_encode($overrides + [
+        return $this->signed(array_filter($overrides + [
             'v' => 1, 'id' => 'lic_test', 'site' => licence::site_host(), 'plan' => 'all', 'learners' => 0,
             'aicredits' => false, 'byok' => true, 'products' => ['*'], 'sub' => 'sub_test', 'term' => 'year',
             'exp' => time() + 300 * DAYSECS, 'iat' => time(),
-        ]);
+        ], function($v) {
+            return $v !== null;
+        }));
+    }
+
+    /**
+     * Sign an exact payload with the test key.
+     *
+     * @param array $data
+     * @return string
+     */
+    protected function signed(array $data): string {
+        $payload = json_encode($data);
         $b64 = function(string $s): string {
             return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
         };
@@ -122,23 +134,74 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame('expired', $later['reason']);
     }
 
-    public function test_server_renewal_and_revocation(): void {
-        $exp = time() - 20 * DAYSECS;
-        set_config('licencekey', $this->key(['exp' => $exp]), 'local_aiconfig');
-        $this->assertFalse(licence::allows('mod_example'));
-        set_config('licencecheck', json_encode(['state' => 'active', 'exp' => time() + 340 * DAYSECS]), 'local_aiconfig');
-        $this->assertTrue(licence::allows('mod_example'), 'A renewal reported by the server extends the key.');
-        set_config('licencecheck', json_encode(['state' => 'revoked', 'exp' => time() + 340 * DAYSECS]), 'local_aiconfig');
-        $this->assertSame('revoked', licence::status('mod_example')['reason']);
+    public function test_keys_without_sub_get_no_grace(): void {
+        $exp = time() - DAYSECS;
+        set_config('licencekey', $this->key(['exp' => $exp, 'sub' => null]), 'local_aiconfig');
+        $this->assertSame('expired', licence::status('mod_example')['reason']);
     }
 
-    public function test_checkout_url_carries_claim_hash(): void {
-        $url = licence::checkout_url();
+    public function test_keys_from_before_byok_keep_access(): void {
+        $payload = ['v' => 1, 'id' => 'lic_old', 'site' => licence::site_host(), 'plan' => 'pro',
+            'products' => ['*'], 'exp' => time() + DAYSECS];
+        set_config('licencekey', $this->signed($payload), 'local_aiconfig');
+        $this->assertTrue(licence::allows('mod_example'));
+        unset($payload['products']);
+        set_config('licencekey', $this->signed($payload), 'local_aiconfig');
+        $this->assertFalse(licence::allows('mod_example'), 'No products list means the coach only.');
+        $this->assertTrue(licence::allows('local_lmslabs_coach'));
+    }
+
+    public function test_daily_check_stores_answer_installs_renewal_and_honours_revocation(): void {
+        set_config('licencekey', $this->key(), 'local_aiconfig');
+        $renewed = $this->key(['exp' => time() + 700 * DAYSECS]);
+        $calls = [];
+        $GLOBALS['local_aiconfig_licence_mock'] = function($path, $body, $key) use (&$calls, $renewed) {
+            $calls[] = [$path, $body, $key];
+            return ['state' => 'active', 'exp' => time() + 700 * DAYSECS, 'key' => $renewed];
+        };
+        $this->assertTrue(licence::check());
+        $this->assertSame('/v1/licence/check', $calls[0][0]);
+        $this->assertSame('local_aiconfig', $calls[0][1]['component']);
+        $this->assertSame($renewed, get_config('local_aiconfig', 'licencekey'));
+        $this->assertSame('active', licence::status()['state']);
+
+        $GLOBALS['local_aiconfig_licence_mock'] = function() {
+            return ['state' => 'revoked'];
+        };
+        licence::check();
+        $this->assertSame('revoked', licence::status('mod_example')['reason']);
+
+        // An answer about another key id is ignored.
+        set_config('licencekey', $this->key(['id' => 'lic_new']), 'local_aiconfig');
+        $this->assertTrue(licence::allows('mod_example'));
+        unset($GLOBALS['local_aiconfig_licence_mock']);
+    }
+
+    public function test_cancelled_answer_ends_grace_early(): void {
+        $exp = time() - DAYSECS;
+        set_config('licencekey', $this->key(['exp' => $exp]), 'local_aiconfig');
+        $this->assertTrue(licence::allows('mod_example'), 'Inside the 14 days.');
+        set_config('licencecheck', json_encode(['id' => 'lic_test', 'state' => 'cancelled', 'graceuntil' => time() - 60]),
+            'local_aiconfig');
+        $this->assertSame('expired', licence::status('mod_example')['reason']);
+    }
+
+    public function test_claim_after_checkout(): void {
+        $url = licence::checkout_url('rto');
+        $this->assertSame('all', $url->get_param('product'));
+        $this->assertSame('rto', $url->get_param('tier'));
         $secret = get_config('local_aiconfig', 'claimsecret');
-        $this->assertSame(64, strlen($secret));
-        $this->assertSame(hash('sha256', $secret), $url->get_param('claim'));
-        $this->assertSame('*', $url->get_param('product'));
-        $this->assertSame(licence::site_host(), $url->get_param('site'));
+        $key = $this->key();
+        $GLOBALS['local_aiconfig_licence_mock'] = function($path, $body) use ($secret, $key) {
+            if ($path === '/v1/licence/claim') {
+                return $body['secret'] === $secret ? ['key' => $key, 'state' => 'active'] : null;
+            }
+            return ['state' => 'active'];
+        };
+        $this->assertNotNull(licence::claim());
+        $this->assertSame($key, get_config('local_aiconfig', 'licencekey'));
+        $this->assertFalse(get_config('local_aiconfig', 'claimsecret'));
+        unset($GLOBALS['local_aiconfig_licence_mock']);
     }
 
     public function test_voice_cannot_use_moodle_ai_and_video_is_credits_only(): void {

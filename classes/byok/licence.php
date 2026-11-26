@@ -43,10 +43,13 @@ class licence {
     const GRACE_DAYS = 14;
 
     /** Default licence server. */
-    const DEFAULT_URL = 'https://lms-labs.com/licensing';
+    const DEFAULT_URL = 'https://licence.lms-labs.com';
 
-    /** Server states that end BYOK at once. */
-    const DEAD_STATES = ['revoked'];
+    /** States the licence server reports. */
+    const STATES = ['pending', 'active', 'past_due', 'grace', 'cancelled', 'expired', 'revoked'];
+
+    /** Yearly "All plugins" tiers, by learner count. */
+    const TIERS = ['starter' => 50, 'pro' => 250, 'rto' => 500, 'enterprise' => 0];
 
     /**
      * Decode and verify a key.
@@ -103,28 +106,46 @@ class licence {
     }
 
     /**
-     * Licence status for the site, optionally for one component.
+     * The licence server's last answer, only if it was about the key installed now.
+     *
+     * @return array|null id, state, exp, graceuntil, renews_at, cancel_at_period_end, checked
+     */
+    public static function remote_for_current_key(): ?array {
+        $remote = json_decode((string) get_config('local_aiconfig', 'licencecheck'), true);
+        $payload = self::verify(trim((string) get_config('local_aiconfig', 'licencekey')));
+        if (!is_array($remote) || !$payload || ($remote['id'] ?? '') !== ($payload['id'] ?? null)) {
+            return null;
+        }
+        return $remote;
+    }
+
+    /**
+     * Licence status for the site, optionally for one component. Applies the rule in
+     * docs/licensing-api.md ("When BYOK is allowed") exactly as every LMS Labs plugin does.
      *
      * @param string|null $component Frankenstyle component to check the products list for, or null for any.
      * @param int|null $now
-     * @return array byok (bool), reason, plan, products, exp, graceuntil, ingrace, state, checked, key (bool)
+     * @return array byok, reason, plan, products, exp, until, subscription, ingrace, state, ending, checked, renews, key
      */
     public static function status(?string $component = null, ?int $now = null): array {
         $now = $now ?? time();
         $key = trim((string) get_config('local_aiconfig', 'licencekey'));
-        $check = json_decode((string) get_config('local_aiconfig', 'licencecheck'), true) ?: [];
+        $remote = self::remote_for_current_key();
         $result = [
             'byok' => false,
             'reason' => 'nokey',
             'plan' => '',
             'products' => [],
             'exp' => 0,
-            'graceuntil' => 0,
+            'until' => 0,
+            'subscription' => false,
             'ingrace' => false,
-            'state' => (string) ($check['state'] ?? ''),
-            'checked' => (int) get_config('local_aiconfig', 'licencechecked'),
-            'renews' => (int) ($check['renews_at'] ?? 0),
+            'state' => (string) ($remote['state'] ?? ''),
+            'ending' => !empty($remote['cancel_at_period_end']),
+            'checked' => (int) ($remote['checked'] ?? 0),
+            'renews' => (int) ($remote['renews_at'] ?? 0),
             'key' => $key !== '',
+            'id' => '',
         ];
         if ($key === '') {
             return $result;
@@ -134,28 +155,43 @@ class licence {
             $result['reason'] = 'invalid';
             return $result;
         }
-        $result['plan'] = (string) ($payload['plan'] ?? '');
-        $result['products'] = array_values(array_map('strval', (array) ($payload['products'] ?? [])));
-        // The server's later period end wins: a renewal moves exp before the new key arrives.
-        $exp = max((int) ($payload['exp'] ?? 0), (int) ($check['exp'] ?? 0));
-        $result['exp'] = $exp;
-        $grace = max($exp + self::GRACE_DAYS * DAYSECS, (int) ($check['graceuntil'] ?? 0));
-        $result['graceuntil'] = $grace;
+        $exp = (int) ($payload['exp'] ?? 0);
+        $subscription = !empty($payload['sub']);
+        // Subscription keys carry on through the grace period; the licence server may end it sooner.
+        $until = $exp ? ($subscription ? $exp + self::GRACE_DAYS * DAYSECS : $exp) : 0;
+        if ($remote && $exp && in_array($result['state'], ['cancelled', 'expired', 'revoked'], true)
+                && !empty($remote['graceuntil'])) {
+            $until = min($until, (int) $remote['graceuntil']);
+        }
+        // Keys from before Bring your own AI (no byok field) keep the own-AI access they always had.
+        $byok = array_key_exists('byok', $payload) ? !empty($payload['byok']) : true;
+        // No products list means the Completion Coach only.
+        $products = array_values(array_map('strval', (array) ($payload['products'] ?? ['local_lmslabs_coach'])));
 
-        if (!empty($payload['site']) && strcasecmp((string) $payload['site'], self::site_host()) !== 0) {
+        $result['id'] = (string) ($payload['id'] ?? '');
+        $result['plan'] = (string) ($payload['plan'] ?? '');
+        $result['products'] = $products;
+        $result['exp'] = $exp;
+        $result['until'] = $until;
+        $result['subscription'] = $subscription;
+
+        if (strcasecmp((string) ($payload['site'] ?? ''), self::site_host()) !== 0) {
             $result['reason'] = 'wrongsite';
-        } else if (empty($payload['byok'])) {
+        } else if (!$byok) {
             $result['reason'] = 'nobyok';
-        } else if ($component !== null && !self::covers($result['products'], $component)) {
-            $result['reason'] = 'notcovered';
-        } else if (in_array($result['state'], self::DEAD_STATES, true)) {
+        } else if ($result['state'] === 'revoked') {
             $result['reason'] = 'revoked';
-        } else if ($exp > 0 && $now >= $grace) {
+        } else if ($until && $until <= $now) {
             $result['reason'] = 'expired';
+        } else if ($component !== null && !self::covers($products, $component)) {
+            $result['reason'] = 'notcovered';
+        } else if ($component === null && !self::covers($products, '*') && !array_diff($products, ['local_lmslabs_coach'])) {
+            // A coach-only key unlocks nothing that this page controls.
+            $result['reason'] = 'notcovered';
         } else {
             $result['reason'] = '';
             $result['byok'] = true;
-            $result['ingrace'] = ($exp > 0 && $now >= $exp) || in_array($result['state'], ['past_due', 'grace'], true);
+            $result['ingrace'] = ($exp && $exp < $now) || $result['state'] === 'past_due';
         }
         return $result;
     }
@@ -168,7 +204,7 @@ class licence {
      * @return bool
      */
     public static function covers(array $products, string $component): bool {
-        return in_array('*', $products, true) || in_array($component, $products, true);
+        return in_array('*', $products, true) || ($component !== '*' && in_array($component, $products, true));
     }
 
     /**
@@ -199,7 +235,8 @@ class licence {
     public static function check(): bool {
         global $CFG;
         $key = trim((string) get_config('local_aiconfig', 'licencekey'));
-        if ($key === '') {
+        $payload = $key !== '' ? self::verify($key) : null;
+        if (!$payload || empty($payload['id'])) {
             return false;
         }
         $plugin = \core_plugin_manager::instance()->get_plugin_info('local_aiconfig');
@@ -212,17 +249,14 @@ class licence {
             'aisource' => router::summary(),
         ];
         $reply = self::post('/v1/licence/check', $body, $key);
-        if (!is_array($reply) || empty($reply['state'])) {
+        if (!is_array($reply) || !in_array($reply['state'] ?? '', self::STATES, true)) {
             return false;
         }
-        $store = [
-            'state' => (string) $reply['state'],
-            'exp' => (int) ($reply['exp'] ?? 0),
-            'graceuntil' => (int) ($reply['graceuntil'] ?? 0),
-            'renews_at' => (int) ($reply['renews_at'] ?? 0),
-        ];
+        $store = ['id' => (string) $payload['id'], 'checked' => time()];
+        foreach (['state', 'exp', 'graceuntil', 'renews_at', 'cancel_at_period_end'] as $field) {
+            $store[$field] = $reply[$field] ?? null;
+        }
         set_config('licencecheck', json_encode($store), 'local_aiconfig');
-        set_config('licencechecked', time(), 'local_aiconfig');
         if (!empty($reply['key']) && is_string($reply['key'])) {
             self::install((string) $reply['key']);
         }
@@ -240,7 +274,7 @@ class licence {
         if (!$payload) {
             return null;
         }
-        if (!empty($payload['site']) && strcasecmp((string) $payload['site'], self::site_host()) !== 0) {
+        if (strcasecmp((string) ($payload['site'] ?? ''), self::site_host()) !== 0) {
             return null;
         }
         set_config('licencekey', trim($key), 'local_aiconfig');
@@ -248,21 +282,38 @@ class licence {
     }
 
     /**
-     * Start a checkout: store a fresh claim secret and return the URL of the subscribe page.
+     * Start a checkout for the "All plugins" plan: store a fresh claim secret and return the checkout URL.
      *
-     * @param string $plan Plan hint for the checkout page, e.g. "all".
+     * @param string $tier starter, pro, rto or enterprise.
      * @return \moodle_url
      */
-    public static function checkout_url(string $plan = 'all'): \moodle_url {
+    public static function checkout_url(string $tier = 'pro'): \moodle_url {
         $secret = bin2hex(random_bytes(32));
         set_config('claimsecret', $secret, 'local_aiconfig');
-        $return = new \moodle_url('/local/aiconfig/claim.php');
         return new \moodle_url(self::server_url() . '/v1/checkout', [
             'site' => self::site_host(),
-            'product' => $plan === 'all' ? '*' : $plan,
-            'return' => $return->out(false),
+            'product' => 'all',
+            'tier' => array_key_exists($tier, self::TIERS) ? $tier : 'pro',
             'claim' => hash('sha256', $secret),
+            'return' => (new \moodle_url('/local/aiconfig/byok.php', ['action' => 'return']))->out(false),
         ]);
+    }
+
+    /**
+     * A Stripe billing portal link (card, invoices, plan, cancel), or null.
+     *
+     * @return string|null
+     */
+    public static function portal_url(): ?string {
+        $key = trim((string) get_config('local_aiconfig', 'licencekey'));
+        if ($key === '') {
+            return null;
+        }
+        $reply = self::post('/v1/licence/portal', [
+            'return' => (new \moodle_url('/local/aiconfig/byok.php'))->out(false),
+        ], $key);
+        $url = $reply['url'] ?? '';
+        return is_string($url) && strpos($url, 'https://') === 0 ? $url : null;
     }
 
     /**
@@ -275,7 +326,7 @@ class licence {
         if ($secret === '') {
             return null;
         }
-        $reply = self::post('/v1/licence/claim', ['site' => self::site_host(), 'claim_secret' => $secret], null);
+        $reply = self::post('/v1/licence/claim', ['site' => self::site_host(), 'secret' => $secret], null);
         if (!is_array($reply) || empty($reply['key']) || !is_string($reply['key'])) {
             return null;
         }
@@ -319,6 +370,9 @@ class licence {
     protected static function post(string $path, array $body, ?string $key): ?array {
         global $CFG;
         require_once($CFG->libdir . '/filelib.php');
+        if (defined('PHPUNIT_TEST') && PHPUNIT_TEST && isset($GLOBALS['local_aiconfig_licence_mock'])) {
+            return ($GLOBALS['local_aiconfig_licence_mock'])($path, $body, $key);
+        }
         $curl = new \curl(['ignoresecurity' => false]);
         $headers = ['Content-Type: application/json', 'Accept: application/json', 'X-LMSLabs-Site: ' . self::site_host()];
         if ($key) {

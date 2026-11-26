@@ -111,6 +111,25 @@
     margin: 0;
 }
 
+.local-aiconfig-byok .lx-subscribe {
+    flex-basis: 100%;
+    margin: 0;
+}
+.local-aiconfig-byok .lx-tiers {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin: 8px 0 16px;
+}
+.local-aiconfig-byok .lx-subscribe__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+.local-aiconfig-byok .lx-claim {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+}
+
 /* Section heads */
 .local-aiconfig-byok .lx-section-head {
     margin: 32px 0 12px;

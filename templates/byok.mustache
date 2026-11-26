@@ -35,6 +35,10 @@
         "renews": "1 December 2027",
         "exp": "1 December 2027",
         "checked": "26/11/26, 09:00",
+        "keyid": "lic_7d2f",
+        "subscription": true,
+        "claimpending": false,
+        "tiers": [{"tier": "pro", "name": "Pro", "detail": "Up to 250 active learners a month", "checked": true}],
         "hasmoodleai": true,
         "moodleai": "https://example.com/admin/settings.php?section=aiprovider",
         "services": [{"service": "text", "name": "Text", "help": "Writing, marking and feedback.", "icon": "fa-align-left",
@@ -64,20 +68,21 @@
                 {{#plan}}<div><dt>{{#str}}byok_plan, local_aiconfig{{/str}}</dt><dd>{{plan}}{{#allplugins}} · {{#str}}byok_allplugins, local_aiconfig{{/str}}{{/allplugins}}</dd></div>{{/plan}}
                 {{#renews}}<div><dt>{{#str}}byok_renews, local_aiconfig{{/str}}</dt><dd>{{renews}}</dd></div>{{/renews}}
                 {{^renews}}{{#exp}}<div><dt>{{#str}}byok_paiduntil, local_aiconfig{{/str}}</dt><dd>{{exp}}</dd></div>{{/exp}}{{/renews}}
+                {{#keyid}}<div><dt>{{#str}}byok_keyid, local_aiconfig{{/str}}</dt><dd>{{keyid}}</dd></div>{{/keyid}}
                 {{#checked}}<div><dt>{{#str}}byok_lastcheck, local_aiconfig{{/str}}</dt><dd>{{checked}}</dd></div>{{/checked}}
             </dl>
             {{/active}}
         </div>
         <div class="lx-hero__actions">
-            {{^active}}
+            {{#subscription}}
             <form method="post" action="{{url}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
-                <input type="hidden" name="action" value="subscribe">
-                <button type="submit" class="mds-btn btn btn-primary mds-btn--size-lg">
-                    <i class="fa-solid fa-bolt" aria-hidden="true"></i> {{#str}}byok_subscribe, local_aiconfig{{/str}}
+                <input type="hidden" name="action" value="manage">
+                <button type="submit" class="mds-btn btn btn-secondary mds-btn--size-md">
+                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i> {{#str}}byok_manage, local_aiconfig{{/str}}
                 </button>
             </form>
-            {{/active}}
+            {{/subscription}}
             {{#haskey}}
             <form method="post" action="{{url}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
@@ -88,6 +93,37 @@
             </form>
             {{/haskey}}
         </div>
+        {{^active}}
+        <form method="post" action="{{url}}" class="lx-subscribe">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="subscribe">
+            <div class="lx-eyebrow" id="byok-tier-heading">{{#str}}byok_tier_heading, local_aiconfig{{/str}}</div>
+            <div class="lx-choices lx-tiers" role="radiogroup" aria-labelledby="byok-tier-heading">
+                {{#tiers}}
+                <div class="lx-choice">
+                    <input class="mds-choicebox-input visually-hidden" type="radio" name="tier" id="tier_{{tier}}" value="{{tier}}" {{#checked}}checked{{/checked}}>
+                    <label class="mds-choicebox" for="tier_{{tier}}">
+                        <i class="fa-solid fa-users lx-choice__icon" aria-hidden="true"></i>
+                        <span class="lx-choice__label">{{name}}</span>
+                        <span class="lx-choice__detail">{{detail}}</span>
+                    </label>
+                </div>
+                {{/tiers}}
+            </div>
+            <div class="lx-subscribe__actions">
+                <button type="submit" class="mds-btn btn btn-primary mds-btn--size-lg">
+                    <i class="fa-solid fa-bolt" aria-hidden="true"></i> {{#str}}byok_subscribe, local_aiconfig{{/str}}
+                </button>
+            </div>
+        </form>
+        {{#claimpending}}
+        <form method="post" action="{{url}}" class="lx-claim">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="claim">
+            <button type="submit" class="mds-btn btn btn-ghost mds-btn--size-sm">{{#str}}byok_claimnow, local_aiconfig{{/str}}</button>
+        </form>
+        {{/claimpending}}
+        {{/active}}
     </section>
 
     {{#ingrace}}
