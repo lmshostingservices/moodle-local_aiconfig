@@ -1,0 +1,440 @@
+/* AI Grader Central Config: "Bring your own AI" page.
+   Moodle Design System tokens with the LMS Labs premium finish, scoped to the page root so nothing
+   else on the site is restyled. Tokens fall back to MDS values when the theme does not ship them. */
+
+.local-aiconfig-byok.mds-premium {
+    --byok-blue: var(--mds-color-blue-500, #0f6cbf);
+    --byok-surface: var(--mds-bg-surface-default, #fff);
+    --byok-subtle: var(--mds-bg-surface-subtle, #f7f8fa);
+    --byok-strong: var(--mds-bg-surface-strong, #eef0f3);
+    --byok-border: var(--mds-border-default, #e1e4e8);
+    --byok-border-subtle: var(--mds-border-subtle, #eceef1);
+    --byok-control: var(--mds-border-interactive-secondary-default, #d5d9de);
+    --byok-control-hover: var(--mds-border-interactive-secondary-hover, #b9bfc6);
+    --byok-text: var(--mds-text-default, #1d2125);
+    --byok-muted: var(--mds-text-muted, #6a737b);
+    --byok-tint: rgba(15, 108, 191, 0.08);
+    --lx-ring: 0 0 0 3px rgba(15, 108, 191, 0.22);
+    --lx-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --lx-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+    --lx-shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 2px 4px -2px rgba(16, 24, 40, 0.05);
+    --lx-ease: cubic-bezier(0.2, 0, 0, 1);
+    color: var(--byok-text);
+    max-width: 1200px;
+}
+
+[data-bs-theme="dark"] .local-aiconfig-byok.mds-premium {
+    --byok-blue: #3f89cc;
+    --byok-surface: #161a1f;
+    --byok-subtle: #1c2127;
+    --byok-strong: #252b32;
+    --byok-border: #2c333a;
+    --byok-border-subtle: #22282e;
+    --byok-control: #3a424a;
+    --byok-control-hover: #4b545d;
+    --byok-text: #e8eaed;
+    --byok-muted: #8f959e;
+    --byok-tint: rgba(63, 137, 204, 0.16);
+    --lx-ring: 0 0 0 3px rgba(111, 167, 217, 0.3);
+    --lx-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --lx-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    --lx-shadow-md: 0 8px 16px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.local-aiconfig-byok .lx-card {
+    background: var(--byok-surface);
+    border: 1px solid var(--byok-border);
+    border-radius: 12px;
+    box-shadow: var(--lx-shadow-sm);
+    padding: 20px;
+}
+
+.local-aiconfig-byok .lx-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--byok-muted);
+    margin-bottom: 4px;
+}
+
+/* Licence hero */
+.local-aiconfig-byok .lx-hero {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 24px;
+    margin-bottom: 16px;
+    background:
+        radial-gradient(120% 140% at 100% 0%, var(--byok-tint) 0%, transparent 55%),
+        var(--byok-surface);
+}
+.local-aiconfig-byok .lx-hero__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+}
+.local-aiconfig-byok .lx-hero__desc {
+    font-size: 1rem;
+    color: var(--byok-muted);
+    max-width: 640px;
+    margin: 0;
+}
+.local-aiconfig-byok .lx-hero__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.local-aiconfig-byok .lx-hero__actions form {
+    margin: 0;
+}
+.local-aiconfig-byok .lx-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin: 16px 0 0;
+}
+.local-aiconfig-byok .lx-facts dt {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--byok-muted);
+}
+.local-aiconfig-byok .lx-facts dd {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.local-aiconfig-byok .lx-subscribe {
+    flex-basis: 100%;
+    margin: 0;
+}
+.local-aiconfig-byok .lx-tiers {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin: 8px 0 16px;
+}
+.local-aiconfig-byok .lx-subscribe__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+.local-aiconfig-byok .lx-claim {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+}
+
+/* Section heads */
+.local-aiconfig-byok .lx-section-head {
+    margin: 32px 0 12px;
+}
+.local-aiconfig-byok .lx-section-head h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+}
+.local-aiconfig-byok .lx-section-head p {
+    color: var(--byok-muted);
+    margin: 0;
+}
+
+/* Service cards */
+.local-aiconfig-byok .lx-services {
+    display: grid;
+    gap: 16px;
+}
+.local-aiconfig-byok .lx-service {
+    margin: 0;
+    min-width: 0;
+}
+.local-aiconfig-byok .lx-hero__title .mds-badge {
+    font-size: 0.875rem;
+    padding: 4px 10px;
+}
+.local-aiconfig-byok .lx-service__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 16px;
+    font-size: 1rem;
+}
+.local-aiconfig-byok .lx-service__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--byok-tint);
+    color: var(--byok-blue);
+    font-size: 1rem;
+}
+.local-aiconfig-byok .lx-service__name {
+    display: block;
+    font-weight: 600;
+}
+.local-aiconfig-byok .lx-service__help {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--byok-muted);
+}
+.local-aiconfig-byok .lx-service__note {
+    font-size: 0.875rem;
+    color: var(--byok-muted);
+    margin: 12px 0 0;
+}
+.local-aiconfig-byok .lx-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.local-aiconfig-byok .mds-choicebox {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+    row-gap: 2px;
+    height: 100%;
+    margin: 0;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: var(--byok-surface);
+    border: 1px solid var(--byok-border);
+    border-radius: 12px;
+    box-shadow: var(--lx-shadow-xs);
+    transition: border-color 150ms var(--lx-ease), box-shadow 150ms var(--lx-ease), background-color 150ms var(--lx-ease);
+}
+.local-aiconfig-byok .lx-choice__icon {
+    grid-row: span 2;
+    margin-top: 3px;
+    color: var(--byok-muted);
+}
+.local-aiconfig-byok .lx-choice__label {
+    font-weight: 500;
+}
+.local-aiconfig-byok .lx-choice__detail {
+    font-size: 0.875rem;
+    color: var(--byok-muted);
+}
+.local-aiconfig-byok .mds-choicebox-input:not(:checked) + .mds-choicebox:hover {
+    border-color: var(--byok-control-hover);
+    box-shadow: var(--lx-shadow-sm);
+}
+.local-aiconfig-byok .mds-choicebox-input:checked + .mds-choicebox {
+    background: var(--byok-tint);
+    border-color: var(--byok-blue);
+    box-shadow: 0 0 0 1px var(--byok-blue);
+}
+.local-aiconfig-byok .mds-choicebox-input:checked + .mds-choicebox .lx-choice__icon {
+    color: var(--byok-blue);
+}
+.local-aiconfig-byok .mds-choicebox-input:focus-visible + .mds-choicebox {
+    outline: 2px solid var(--byok-blue);
+    outline-offset: 0;
+    box-shadow: var(--lx-ring);
+}
+.local-aiconfig-byok .lx-choice--notready .lx-choice__detail {
+    color: var(--mds-text-feedback-warning, #8a5a00);
+}
+.local-aiconfig-byok .lx-vendor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+.local-aiconfig-byok .lx-vendor label {
+    margin: 0;
+    font-weight: 500;
+}
+.local-aiconfig-byok .lx-vendor select {
+    max-width: 320px;
+}
+
+/* Fields */
+.local-aiconfig-byok .mds-input-field,
+.local-aiconfig-byok .mds-select-field,
+.local-aiconfig-byok .mds-textarea-field {
+    min-height: 42px;
+    font-size: 1rem;
+    background-color: var(--byok-surface);
+    color: var(--byok-text);
+    border: 1px solid var(--byok-control);
+    border-radius: 8px;
+    box-shadow: var(--lx-shadow-xs);
+    transition: border-color 150ms var(--lx-ease), box-shadow 150ms var(--lx-ease);
+}
+.local-aiconfig-byok .mds-input-field:hover,
+.local-aiconfig-byok .mds-select-field:hover,
+.local-aiconfig-byok .mds-textarea-field:hover {
+    border-color: var(--byok-control-hover);
+}
+.local-aiconfig-byok .mds-input-field:focus,
+.local-aiconfig-byok .mds-select-field:focus,
+.local-aiconfig-byok .mds-textarea-field:focus {
+    outline: none;
+    border-color: var(--byok-blue);
+    box-shadow: var(--lx-ring);
+}
+.local-aiconfig-byok .mds-input-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+.local-aiconfig-byok .lx-keys {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+.local-aiconfig-byok .lx-key__clear {
+    margin-top: 8px;
+    font-size: 0.875rem;
+}
+
+/* Buttons: medium weight, white secondary, soft press */
+.local-aiconfig-byok .mds-btn.btn {
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 150ms var(--lx-ease), box-shadow 150ms var(--lx-ease), transform 150ms var(--lx-ease);
+}
+.local-aiconfig-byok .mds-btn.btn:active {
+    transform: translateY(0.5px);
+}
+.local-aiconfig-byok .mds-btn.btn:focus-visible {
+    box-shadow: var(--lx-ring);
+}
+.local-aiconfig-byok .mds-btn.btn-primary {
+    box-shadow: var(--lx-shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.local-aiconfig-byok .lx-key__help {
+    font-size: 0.875rem;
+    color: var(--byok-muted);
+    margin-top: 4px;
+}
+.local-aiconfig-byok .mds-btn.btn.btn-secondary {
+    --bs-btn-bg: var(--byok-surface);
+    --bs-btn-hover-bg: var(--byok-subtle);
+    --bs-btn-active-bg: var(--byok-strong);
+    --bs-btn-color: var(--byok-text);
+    --bs-btn-hover-color: var(--byok-text);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-border-color: transparent;
+    background: var(--byok-surface);
+    color: var(--byok-text);
+    border-color: transparent;
+    box-shadow: var(--lx-shadow-xs), inset 0 0 0 1px var(--byok-control);
+}
+.local-aiconfig-byok .mds-btn.btn.btn-secondary:hover {
+    background: var(--byok-subtle);
+    box-shadow: var(--lx-shadow-xs), inset 0 0 0 1px var(--byok-control-hover);
+}
+.local-aiconfig-byok .mds-btn--size-sm.btn {
+    font-size: 0.875rem;
+    border-radius: 6px;
+}
+.local-aiconfig-byok .mds-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+.local-aiconfig-byok .mds-alert {
+    border-radius: 12px;
+    box-shadow: var(--lx-shadow-xs);
+    margin-bottom: 16px;
+}
+.local-aiconfig-byok .mds-alert-title {
+    font-weight: 600;
+}
+.local-aiconfig-byok .lx-savebar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Usage */
+.local-aiconfig-byok .lx-usage {
+    padding: 8px 20px;
+}
+.local-aiconfig-byok .lx-table {
+    margin: 0;
+    color: var(--byok-text);
+    --bs-table-bg: transparent;
+}
+.local-aiconfig-byok .lx-table th {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--byok-muted);
+    border-bottom-color: var(--byok-border);
+}
+.local-aiconfig-byok .lx-table td {
+    border-color: var(--byok-border-subtle);
+}
+.local-aiconfig-byok .lx-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+.local-aiconfig-byok .lx-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--byok-muted);
+}
+.local-aiconfig-byok .lx-empty i {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+.local-aiconfig-byok .lx-empty p {
+    margin: 0;
+}
+
+/* Manual key */
+.local-aiconfig-byok .lx-manual {
+    margin-top: 32px;
+}
+.local-aiconfig-byok .lx-manual summary {
+    font-weight: 500;
+    cursor: pointer;
+}
+.local-aiconfig-byok .lx-manual__form {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0 12px;
+    max-width: 640px;
+    justify-items: start;
+}
+.local-aiconfig-byok .lx-manual__form textarea {
+    width: 100%;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 767.98px) {
+    .local-aiconfig-byok .lx-service__head {
+        grid-template-columns: auto 1fr;
+    }
+    .local-aiconfig-byok .lx-service__now {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+    .local-aiconfig-byok .lx-vendor {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .local-aiconfig-byok *,
+    .local-aiconfig-byok *::before,
+    .local-aiconfig-byok *::after {
+        transition: none !important;
+    }
+}

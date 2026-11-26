@@ -34,4 +34,9 @@ $callbacks = [
         'callback' => \local_aiconfig\hook\output\before_footer::class . '::callback',
         'priority' => 500,
     ],
+    [
+        'hook'     => \core\hook\output\before_standard_top_of_body_html_generation::class,
+        'callback' => \local_aiconfig\hook\output\before_top_of_body::class . '::callback',
+        'priority' => 500,
+    ],
 ];

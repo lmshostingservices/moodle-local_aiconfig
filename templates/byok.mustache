@@ -1,0 +1,264 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_aiconfig/byok
+
+    Bring your own AI: licence status, per-service sources, keys and usage.
+
+    Example context (json):
+    {
+        "url": "https://example.com/local/aiconfig/byok.php",
+        "sesskey": "abc123",
+        "state": "active",
+        "statelabel": "Active",
+        "statedesc": "Every LMS Labs plugin on this site can use your own AI. Renews 1 December 2027.",
+        "badge": "success",
+        "active": true,
+        "ingrace": false,
+        "haskey": true,
+        "plan": "All",
+        "allplugins": true,
+        "renews": "1 December 2027",
+        "exp": "1 December 2027",
+        "checked": "26/11/26, 09:00",
+        "keyid": "lic_7d2f",
+        "subscription": true,
+        "claimpending": false,
+        "tiers": [{"tier": "pro", "name": "Pro", "detail": "Up to 250 active learners a month", "checked": true}],
+        "hasmoodleai": true,
+        "moodleai": "https://example.com/admin/settings.php?section=aiprovider",
+        "services": [{"service": "text", "name": "Text", "help": "Writing, marking and feedback.", "icon": "fa-align-left",
+            "hasvendors": true, "creditsonly": false, "effective": "Running on Moodle AI", "isown": true,
+            "vendors": [{"value": "anthropic", "label": "Anthropic Claude", "selected": true}],
+            "options": [{"value": "credits", "id": "src_text_credits", "label": "LMS Labs credits", "detail": "Runs on LMS Labs.",
+                "checked": false, "notready": false, "icon": "fa-coins"}]}],
+        "keys": [{"vendor": "anthropic", "label": "Anthropic", "saved": true, "hint": "Saved, ends …abcd"}],
+        "voice_googletts": "Aoede",
+        "voice_elevenlabs": "",
+        "voice_openai": "",
+        "hasusage": true,
+        "usage": [{"component": "mod_aiknowledgecheck", "name": "AI Knowledge Check", "service": "Text", "source": "Moodle AI", "calls": 42}]
+    }
+}}
+<div class="local-aiconfig-byok mds-premium">
+    <section class="lx-card lx-hero" aria-labelledby="byok-licence-heading">
+        <div class="lx-hero__body">
+            <div class="lx-eyebrow">{{#str}}byok_eyebrow, local_aiconfig{{/str}}</div>
+            <h3 id="byok-licence-heading" class="lx-hero__title">
+                {{#str}}byok_licence_heading, local_aiconfig{{/str}}
+                <span class="mds-badge badge mds-badge--pill mds-badge--subtle bg-{{badge}}-subtle text-{{badge}}-emphasis">{{statelabel}}</span>
+            </h3>
+            <p class="lx-hero__desc">{{statedesc}}</p>
+            {{#active}}
+            <dl class="lx-facts">
+                {{#plan}}<div><dt>{{#str}}byok_plan, local_aiconfig{{/str}}</dt><dd>{{plan}}{{#allplugins}} · {{#str}}byok_allplugins, local_aiconfig{{/str}}{{/allplugins}}</dd></div>{{/plan}}
+                {{#renews}}<div><dt>{{#str}}byok_renews, local_aiconfig{{/str}}</dt><dd>{{renews}}</dd></div>{{/renews}}
+                {{^renews}}{{#exp}}<div><dt>{{#str}}byok_paiduntil, local_aiconfig{{/str}}</dt><dd>{{exp}}</dd></div>{{/exp}}{{/renews}}
+                {{#keyid}}<div><dt>{{#str}}byok_keyid, local_aiconfig{{/str}}</dt><dd>{{keyid}}</dd></div>{{/keyid}}
+                {{#checked}}<div><dt>{{#str}}byok_lastcheck, local_aiconfig{{/str}}</dt><dd>{{checked}}</dd></div>{{/checked}}
+            </dl>
+            {{/active}}
+        </div>
+        <div class="lx-hero__actions">
+            {{#subscription}}
+            <form method="post" action="{{url}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="manage">
+                <button type="submit" class="mds-btn btn btn-secondary mds-btn--size-md">
+                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i> {{#str}}byok_manage, local_aiconfig{{/str}}
+                </button>
+            </form>
+            {{/subscription}}
+            {{#haskey}}
+            <form method="post" action="{{url}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="action" value="check">
+                <button type="submit" class="mds-btn btn btn-secondary mds-btn--size-md">
+                    <i class="fa-solid fa-rotate" aria-hidden="true"></i> {{#str}}byok_checknow, local_aiconfig{{/str}}
+                </button>
+            </form>
+            {{/haskey}}
+        </div>
+        {{^active}}
+        <form method="post" action="{{url}}" class="lx-subscribe">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="subscribe">
+            <div class="lx-eyebrow" id="byok-tier-heading">{{#str}}byok_tier_heading, local_aiconfig{{/str}}</div>
+            <div class="lx-choices lx-tiers" role="radiogroup" aria-labelledby="byok-tier-heading">
+                {{#tiers}}
+                <div class="lx-choice">
+                    <input class="mds-choicebox-input visually-hidden" type="radio" name="tier" id="tier_{{tier}}" value="{{tier}}" {{#checked}}checked{{/checked}}>
+                    <label class="mds-choicebox" for="tier_{{tier}}">
+                        <i class="fa-solid fa-users lx-choice__icon" aria-hidden="true"></i>
+                        <span class="lx-choice__label">{{name}}</span>
+                        <span class="lx-choice__detail">{{detail}}</span>
+                    </label>
+                </div>
+                {{/tiers}}
+            </div>
+            <div class="lx-subscribe__actions">
+                <button type="submit" class="mds-btn btn btn-primary mds-btn--size-lg">
+                    <i class="fa-solid fa-bolt" aria-hidden="true"></i> {{#str}}byok_subscribe, local_aiconfig{{/str}}
+                </button>
+            </div>
+        </form>
+        {{#claimpending}}
+        <form method="post" action="{{url}}" class="lx-claim">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="claim">
+            <button type="submit" class="mds-btn btn btn-ghost mds-btn--size-sm">{{#str}}byok_claimnow, local_aiconfig{{/str}}</button>
+        </form>
+        {{/claimpending}}
+        {{/active}}
+    </section>
+
+    {{#ingrace}}
+    <div class="mds-alert alert alert-warning" role="alert">
+        <div class="mds-alert-title">{{#str}}byok_grace_title, local_aiconfig{{/str}}</div>
+        {{statedesc}}
+    </div>
+    {{/ingrace}}
+
+    <form method="post" action="{{url}}" autocomplete="off">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="save">
+
+        <div class="lx-section-head">
+            <h3>{{#str}}byok_services_heading, local_aiconfig{{/str}}</h3>
+            <p>{{#str}}byok_services_desc, local_aiconfig{{/str}}{{#hasmoodleai}} <a class="mds-link" href="{{moodleai}}">{{#str}}byok_moodleai_link, local_aiconfig{{/str}}</a>{{/hasmoodleai}}</p>
+        </div>
+
+        <div class="lx-services">
+            {{#services}}
+            <div class="lx-card lx-service" role="radiogroup" aria-labelledby="byok-svc-{{service}}">
+                <div class="lx-service__head">
+                    <span class="lx-service__icon" aria-hidden="true"><i class="fa-solid {{icon}}"></i></span>
+                    <span>
+                        <span class="lx-service__name" id="byok-svc-{{service}}">{{name}}</span>
+                        <span class="lx-service__help">{{help}}</span>
+                    </span>
+                    <span class="mds-badge badge mds-badge--subtle {{#isown}}bg-success-subtle text-success-emphasis{{/isown}}{{^isown}}bg-secondary-subtle text-secondary-emphasis{{/isown}} lx-service__now">{{effective}}</span>
+                </div>
+                <div class="lx-choices">
+                    {{#options}}
+                    <div class="lx-choice">
+                        <input class="mds-choicebox-input visually-hidden" type="radio" name="src_{{service}}" id="{{id}}" value="{{value}}" {{#checked}}checked{{/checked}}>
+                        <label class="mds-choicebox{{#notready}} lx-choice--notready{{/notready}}" for="{{id}}">
+                            <i class="fa-solid {{icon}} lx-choice__icon" aria-hidden="true"></i>
+                            <span class="lx-choice__label">{{label}}</span>
+                            <span class="lx-choice__detail">{{detail}}</span>
+                        </label>
+                    </div>
+                    {{/options}}
+                </div>
+                {{#hasvendors}}
+                <div class="lx-vendor">
+                    <label for="vendor_{{service}}">{{#str}}byok_vendor_label, local_aiconfig{{/str}}</label>
+                    <select class="form-select mds-select-field" id="vendor_{{service}}" name="vendor_{{service}}">
+                        {{#vendors}}<option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>{{/vendors}}
+                    </select>
+                </div>
+                {{/hasvendors}}
+                {{#creditsonly}}<p class="lx-service__note">{{#str}}byok_creditsonly, local_aiconfig{{/str}}</p>{{/creditsonly}}
+            </div>
+            {{/services}}
+        </div>
+
+        <div class="lx-section-head">
+            <h3>{{#str}}byok_keys_heading, local_aiconfig{{/str}}</h3>
+            <p>{{#str}}byok_keys_desc, local_aiconfig{{/str}}</p>
+        </div>
+        <div class="lx-card lx-keys">
+            {{#keys}}
+            <div class="lx-key">
+                <label class="mds-input-label" for="key_{{vendor}}">{{label}}</label>
+                <input class="form-control mds-input-field" type="password" id="key_{{vendor}}" name="key_{{vendor}}"
+                       placeholder="{{#saved}}{{hint}}{{/saved}}{{^saved}}{{#str}}byok_key_placeholder, local_aiconfig{{/str}}{{/saved}}" autocomplete="new-password">
+                {{#saved}}
+                <div class="lx-key__help">{{#str}}byok_keykeep, local_aiconfig{{/str}}</div>
+                <div class="form-check lx-key__clear">
+                    <input class="form-check-input" type="checkbox" id="clear_{{vendor}}" name="clear_{{vendor}}" value="1">
+                    <label class="form-check-label" for="clear_{{vendor}}">{{#str}}byok_key_clear, local_aiconfig{{/str}}</label>
+                </div>
+                {{/saved}}
+            </div>
+            {{/keys}}
+            <div class="lx-key">
+                <label class="mds-input-label" for="voice_googletts">{{#str}}byok_voice_googletts, local_aiconfig{{/str}}</label>
+                <input class="form-control mds-input-field" type="text" id="voice_googletts" name="voice_googletts" value="{{voice_googletts}}" placeholder="Aoede">
+            </div>
+            <div class="lx-key">
+                <label class="mds-input-label" for="voice_elevenlabs">{{#str}}byok_voice_elevenlabs, local_aiconfig{{/str}}</label>
+                <input class="form-control mds-input-field" type="text" id="voice_elevenlabs" name="voice_elevenlabs" value="{{voice_elevenlabs}}" placeholder="21m00Tcm4TlvDq8ikWAM">
+            </div>
+            <div class="lx-key">
+                <label class="mds-input-label" for="voice_openai">{{#str}}byok_voice_openai, local_aiconfig{{/str}}</label>
+                <input class="form-control mds-input-field" type="text" id="voice_openai" name="voice_openai" value="{{voice_openai}}" placeholder="alloy">
+            </div>
+        </div>
+
+        <div class="lx-savebar">
+            <button type="submit" class="mds-btn btn btn-primary mds-btn--size-md">{{#str}}savechanges{{/str}}</button>
+        </div>
+    </form>
+
+    <div class="lx-section-head">
+        <h3>{{#str}}byok_usage_heading, local_aiconfig{{/str}}</h3>
+        <p>{{#str}}byok_usage_desc, local_aiconfig{{/str}}</p>
+    </div>
+    <div class="lx-card lx-usage">
+        {{#hasusage}}
+        <div class="table-responsive">
+        <table class="table lx-table">
+            <thead><tr>
+                <th scope="col">{{#str}}byok_usage_plugin, local_aiconfig{{/str}}</th>
+                <th scope="col">{{#str}}byok_usage_service, local_aiconfig{{/str}}</th>
+                <th scope="col">{{#str}}byok_usage_source, local_aiconfig{{/str}}</th>
+                <th scope="col" class="text-end">{{#str}}byok_usage_calls, local_aiconfig{{/str}}</th>
+            </tr></thead>
+            <tbody>
+                {{#usage}}<tr><td>{{name}}</td><td>{{service}}</td><td>{{source}}</td><td class="text-end lx-num">{{calls}}</td></tr>{{/usage}}
+            </tbody>
+        </table>
+        </div>
+        {{/hasusage}}
+        {{^hasusage}}
+        <div class="lx-empty">
+            <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+            <p>{{#str}}byok_usage_empty, local_aiconfig{{/str}}</p>
+        </div>
+        {{/hasusage}}
+    </div>
+
+    <details class="lx-card lx-manual">
+        <summary>{{#str}}byok_manual_heading, local_aiconfig{{/str}}</summary>
+        <form method="post" action="{{url}}" class="lx-manual__form">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="savekey">
+            <label class="mds-input-label" for="licencekey">{{#str}}byok_manual_label, local_aiconfig{{/str}}</label>
+            <textarea class="form-control mds-textarea-field" id="licencekey" name="licencekey" rows="3" spellcheck="false"></textarea>
+            <button type="submit" class="mds-btn btn btn-secondary mds-btn--size-md">{{#str}}byok_manual_save, local_aiconfig{{/str}}</button>
+        </form>
+        {{#haskey}}
+        <form method="post" action="{{url}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="removekey">
+            <button type="submit" class="mds-btn btn btn-outline-danger mds-btn--size-sm">{{#str}}byok_removekey, local_aiconfig{{/str}}</button>
+        </form>
+        {{/haskey}}
+    </details>
+</div>

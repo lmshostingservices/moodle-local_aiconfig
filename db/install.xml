@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/aiconfig/db" VERSION="20261126" COMMENT="XMLDB file for Moodle local/aiconfig"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_aiconfig_byok_usage" COMMENT="Daily bring-your-own-AI call counts per plugin, service and source. No personal data.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="component" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Calling plugin"/>
+        <FIELD NAME="service" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="text, image, voice, vision"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="moodle or ownkey"/>
+        <FIELD NAME="day" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Start of the UTC day"/>
+        <FIELD NAME="calls" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="seconds" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Total call time"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="componentday" UNIQUE="true" FIELDS="component, service, source, day"/>
+        <INDEX NAME="day" UNIQUE="false" FIELDS="day"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

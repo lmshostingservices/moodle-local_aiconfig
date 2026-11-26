@@ -1,5 +1,28 @@
 # AI Grader Central Config Changelog
 
+## Version 1.1.0 (26 November 2026)
+
+### Bring your own AI
+- New page: Site administration > Plugins > Local plugins > Bring your own AI.
+- A yearly LMS Labs "Bring your own AI" licence lets every LMS Labs plugin run AI on the site's own
+  providers instead of LMS Labs credits. Subscribe from the page; the key installs itself after payment.
+- Choose a source per kind of AI (text, images, voice, reading images, video): LMS Labs credits,
+  Moodle AI (Moodle 4.5+), or your own Anthropic, OpenAI, Google or ElevenLabs key. Video stays on credits.
+- Own-key and Moodle AI calls go from the Moodle site straight to the provider, never through LMS Labs.
+- Daily licence check, 14-day grace period, admin warning banner while payment is due.
+- Usage table: calls on your own AI per plugin over the last 30 days (no personal data).
+- API for LMS Labs plugins: `\local_aiconfig\byok\ai::uses_own_ai()`, `text()`, `image()`, `speech()`.
+- `text()` takes a `schema` option for structured output: enforced by OpenAI (strict JSON schema) and
+  Anthropic (forced tool), and given in the prompt to Gemini and Moodle AI. JSON answers cut off at the
+  token limit are reported as failures instead of being returned half-written.
+- `text()` takes a `timeout` option (seconds) for long generations that run from a scheduled task.
+- Anthropic structured answers keep empty objects (`{}`) as objects.
+- `speech()` takes a `format` option: `mp3` (default) or `ogg` (Ogg Opus) for plugins that play Ogg audio.
+- `image()` takes a `reference` picture to edit (own OpenAI GPT image key only; `image_edits()` says when
+  it is available), for plugins that draw a picture in steps.
+- `speech()` takes a `samplerate` option for Google voices.
+- `speech()` takes a `rate` option (speaking rate) for Google and OpenAI voices.
+
 ## Version 1.0.16 (24 August 2026)
 
 ### Marketplace and documentation

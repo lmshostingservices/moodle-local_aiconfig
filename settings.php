@@ -73,7 +73,22 @@ if ($hasaccess) {
         ''
     ));
     
+    // Bring your own AI: licence server (only change this when LMS Labs support asks you to).
+    $settings->add(new admin_setting_configtext(
+        'local_aiconfig/licenceurl',
+        get_string('licenceurl', 'local_aiconfig'),
+        get_string('licenceurl_desc', 'local_aiconfig'),
+        \local_aiconfig\byok\licence::DEFAULT_URL,
+        PARAM_URL
+    ));
+
     $ADMIN->add('localplugins', $settings);
+    $ADMIN->add('localplugins', new admin_externalpage(
+        'local_aiconfig_byok',
+        get_string('byok_title', 'local_aiconfig'),
+        new moodle_url('/local/aiconfig/byok.php'),
+        'local/aiconfig:manage'
+    ));
 }
 
 // =========================================================================
