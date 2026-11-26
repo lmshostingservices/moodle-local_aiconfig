@@ -264,6 +264,41 @@ final class byok_test extends \advanced_testcase {
         };
         $this->assertSame('MP3', ai::speech('mod_example', 'Hello', ['language' => 'en-AU', 'voice' => 'Kore']));
         $this->assertSame('en-AU-Chirp3-HD-Kore', $seen['voice']['name']);
+        $this->assertSame('MP3', $seen['audioConfig']['audioEncoding']);
+        ai::speech('mod_example', 'Hello', ['format' => 'ogg']);
+        $this->assertSame('OGG_OPUS', $seen['audioConfig']['audioEncoding']);
+        $this->assertArrayNotHasKey('speakingRate', $seen['audioConfig']);
+        ai::speech('mod_example', 'Hello', ['format' => 'ogg', 'rate' => 0.92, 'voice' => 'hi-IN-Chirp3-HD-Aoede',
+            'language' => 'hi-IN']);
+        $this->assertSame(0.92, $seen['audioConfig']['speakingRate']);
+        $this->assertSame('hi-IN-Chirp3-HD-Aoede', $seen['voice']['name']);
+    }
+
+    public function test_speech_in_ogg_on_openai_and_elevenlabs(): void {
+        set_config('licencekey', $this->key(), 'local_aiconfig');
+        set_config('src_voice', 'ownkey', 'local_aiconfig');
+        set_config('key_openai', 'sk-open', 'local_aiconfig');
+        set_config('key_elevenlabs', 'el-key', 'local_aiconfig');
+        $seen = [];
+        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+            $seen[] = ['url' => $url, 'body' => $body];
+            return 'OGGS';
+        };
+        set_config('vendor_voice', 'openai', 'local_aiconfig');
+        ai::speech('mod_example', 'Hello', ['format' => 'ogg']);
+        $this->assertSame('opus', $seen[0]['body']['response_format']);
+        set_config('vendor_voice', 'elevenlabs', 'local_aiconfig');
+        ai::speech('mod_example', 'Hello', ['format' => 'ogg']);
+        $this->assertStringContainsString('output_format=opus_48000_64', $seen[1]['url']);
+        ai::speech('mod_example', 'Hello', ['format' => 'wav']);
+        $this->assertStringContainsString('output_format=mp3_44100_128', $seen[2]['url']);
+        set_config('vendor_voice', 'openai', 'local_aiconfig');
+        ai::speech('mod_example', 'Hello', ['format' => 'ogg', 'rate' => 0.92]);
+        $this->assertSame(0.92, $seen[3]['body']['speed']);
+        ai::speech('mod_example', 'Hello', ['rate' => 9]);
+        $this->assertSame(4.0, $seen[4]['body']['speed']);
+        ai::speech('mod_example', 'Hello');
+        $this->assertArrayNotHasKey('speed', $seen[5]['body']);
     }
 
     public function test_schema_is_enforced_by_each_vendor(): void {

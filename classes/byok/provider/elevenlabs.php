@@ -33,16 +33,17 @@ class elevenlabs {
      * @param string $key
      * @param string $model e.g. eleven_multilingual_v2
      * @param string $text
-     * @param array $options voice (ElevenLabs voice id; blank = admin default)
-     * @return string MP3 bytes.
+     * @param array $options voice (ElevenLabs voice id; blank = admin default), format (mp3 or ogg)
+     * @return string MP3 or Ogg Opus bytes.
      */
     public static function speech(string $key, string $model, string $text, array $options): string {
         $voice = $options['voice'] ?: (string) get_config('local_aiconfig', 'voice_elevenlabs');
         if ($voice === '' || !preg_match('/^[A-Za-z0-9]{10,40}$/', $voice)) {
             $voice = '21m00Tcm4TlvDq8ikWAM';
         }
-        return http::post(self::BASE . $voice . '?output_format=mp3_44100_128', [
-            'xi-api-key: ' . $key, 'Accept: audio/mpeg',
+        $ogg = ($options['format'] ?? 'mp3') === 'ogg';
+        return http::post(self::BASE . $voice . '?output_format=' . ($ogg ? 'opus_48000_64' : 'mp3_44100_128'), [
+            'xi-api-key: ' . $key, 'Accept: ' . ($ogg ? 'audio/ogg' : 'audio/mpeg'),
         ], ['text' => $text, 'model_id' => $model], 'ElevenLabs', true);
     }
 }

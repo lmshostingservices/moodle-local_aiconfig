@@ -122,14 +122,17 @@ class openai {
      * @param string $key
      * @param string $model
      * @param string $text
-     * @param array $options voice
-     * @return string MP3 bytes.
+     * @param array $options voice, format (mp3 or ogg)
+     * @return string MP3 or Ogg Opus bytes.
      */
     public static function speech(string $key, string $model, string $text, array $options): string {
         $voice = $options['voice'] ?: ((string) get_config('local_aiconfig', 'voice_openai') ?: 'alloy');
-        return http::post(self::BASE . '/audio/speech', self::headers($key, $options), [
-            'model' => $model, 'voice' => $voice, 'input' => $text, 'response_format' => 'mp3',
-        ], 'OpenAI', true);
+        $body = ['model' => $model, 'voice' => $voice, 'input' => $text,
+            'response_format' => ($options['format'] ?? 'mp3') === 'ogg' ? 'opus' : 'mp3'];
+        if (!empty($options['rate'])) {
+            $body['speed'] = (float) $options['rate'];
+        }
+        return http::post(self::BASE . '/audio/speech', self::headers($key, $options), $body, 'OpenAI', true);
     }
 
     /**

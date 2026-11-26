@@ -127,12 +127,18 @@ class ai {
      *
      * @param string $component Calling plugin.
      * @param string $text
-     * @param array $options language (BCP-47, e.g. "en-AU"), voice (vendor voice name or id; blank = admin default).
-     * @return string Raw MP3 bytes.
+     * @param array $options language (BCP-47, e.g. "en-AU"), voice (vendor voice name or id; blank = admin default),
+     *                       format ('mp3', the default, or 'ogg' for Ogg Opus, which some plugins play as audio/ogg),
+     *                       rate (speaking rate, 0.25 to 4, 1 = normal; Google and OpenAI voices).
+     * @return string Raw audio bytes in the requested format.
      */
     public static function speech(string $component, string $text, array $options = []): string {
         self::require_source($component, router::VOICE);
-        $options += ['language' => 'en-AU', 'voice' => ''];
+        $options += ['language' => 'en-AU', 'voice' => '', 'format' => 'mp3'];
+        $options['format'] = $options['format'] === 'ogg' ? 'ogg' : 'mp3';
+        if (isset($options['rate'])) {
+            $options['rate'] = max(0.25, min(4.0, (float) $options['rate']));
+        }
         $vendor = router::vendor(router::VOICE);
         $class = self::vendor_class($vendor);
         $started = microtime(true);

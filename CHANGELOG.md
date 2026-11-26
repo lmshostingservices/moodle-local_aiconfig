@@ -17,6 +17,8 @@
   token limit are reported as failures instead of being returned half-written.
 - `text()` takes a `timeout` option (seconds) for long generations that run from a scheduled task.
 - Anthropic structured answers keep empty objects (`{}`) as objects.
+- `speech()` takes a `format` option: `mp3` (default) or `ogg` (Ogg Opus) for plugins that play Ogg audio.
+- `speech()` takes a `rate` option (speaking rate) for Google and OpenAI voices.
 
 ## Version 1.0.16 (24 August 2026)
 

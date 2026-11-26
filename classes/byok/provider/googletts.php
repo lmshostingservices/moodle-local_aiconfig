@@ -33,8 +33,8 @@ class googletts {
      * @param string $key Google API key with the Text-to-Speech API enabled.
      * @param string $model Voice family, e.g. "Chirp3-HD".
      * @param string $text
-     * @param array $options language, voice (short name like "Aoede", or a full voice name)
-     * @return string MP3 bytes.
+     * @param array $options language, voice (short name like "Aoede", or a full voice name), format (mp3 or ogg)
+     * @return string MP3 or Ogg Opus bytes.
      */
     public static function speech(string $key, string $model, string $text, array $options): string {
         $language = $options['language'] ?: 'en-AU';
@@ -42,10 +42,14 @@ class googletts {
         if (!preg_match('/^[a-z]{2,3}-[A-Za-z]{2,4}-/', $voice)) {
             $voice = $language . '-' . $model . '-' . $voice;
         }
+        $audio = ['audioEncoding' => ($options['format'] ?? 'mp3') === 'ogg' ? 'OGG_OPUS' : 'MP3'];
+        if (!empty($options['rate'])) {
+            $audio['speakingRate'] = (float) $options['rate'];
+        }
         $data = http::post(self::ENDPOINT, ['x-goog-api-key: ' . $key], [
             'input' => ['text' => $text],
             'voice' => ['languageCode' => $language, 'name' => $voice],
-            'audioConfig' => ['audioEncoding' => 'MP3'],
+            'audioConfig' => $audio,
         ], 'Google Text-to-Speech');
         if (empty($data['audioContent'])) {
             http::empty_reply('Google Text-to-Speech');
