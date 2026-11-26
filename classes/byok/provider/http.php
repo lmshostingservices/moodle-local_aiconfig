@@ -35,8 +35,14 @@ class http {
      * @param int $timeout Seconds.
      * @return array|string
      */
-    public static function post(string $url, array $headers, array $body, string $vendor, bool $raw = false,
-            int $timeout = 180) {
+    public static function post(
+        string $url,
+        array $headers,
+        array $body,
+        string $vendor,
+        bool $raw = false,
+        int $timeout = 180
+    ) {
         if (defined('PHPUNIT_TEST') && PHPUNIT_TEST && isset($GLOBALS['local_aiconfig_byok_mock'])) {
             return ($GLOBALS['local_aiconfig_byok_mock'])($url, $headers, $body, $vendor, $raw);
         }

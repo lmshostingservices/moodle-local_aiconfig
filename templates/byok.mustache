@@ -144,7 +144,7 @@
 
         <div class="lx-services">
             {{#services}}
-            <section class="lx-card lx-service" role="radiogroup" aria-labelledby="byok-svc-{{service}}">
+            <div class="lx-card lx-service" role="radiogroup" aria-labelledby="byok-svc-{{service}}">
                 <div class="lx-service__head">
                     <span class="lx-service__icon" aria-hidden="true"><i class="fa-solid {{icon}}"></i></span>
                     <span>
@@ -174,7 +174,7 @@
                 </div>
                 {{/hasvendors}}
                 {{#creditsonly}}<p class="lx-service__note">{{#str}}byok_creditsonly, local_aiconfig{{/str}}</p>{{/creditsonly}}
-            </section>
+            </div>
             {{/services}}
         </div>
 

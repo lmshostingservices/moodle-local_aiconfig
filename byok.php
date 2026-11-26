@@ -40,8 +40,10 @@ if ($action === 'return') {
     // this site with a secret this site made, so a forged visit can do no more than install the site's own key.
     $payload = licence::claim();
     $pending = (string) get_config('local_aiconfig', 'claimsecret') !== '';
-    redirect($pageurl, get_string($payload ? 'byok_claimed' : ($pending ? 'byok_claimpending' : 'byok_checkoutcancelled'),
-        'local_aiconfig'), null, $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO);
+    redirect($pageurl, get_string(
+        $payload ? 'byok_claimed' : ($pending ? 'byok_claimpending' : 'byok_checkoutcancelled'),
+        'local_aiconfig'
+    ), null, $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO);
 }
 
 if ($action !== '') {
@@ -52,21 +54,33 @@ if ($action !== '') {
             break;
         case 'claim':
             $payload = licence::claim();
-            redirect($pageurl, get_string($payload ? 'byok_claimed' : 'byok_claimpending', 'local_aiconfig'), null,
-                $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO);
+            redirect(
+                $pageurl,
+                get_string($payload ? 'byok_claimed' : 'byok_claimpending', 'local_aiconfig'),
+                null,
+                $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_INFO
+            );
             break;
         case 'manage':
             $portal = licence::portal_url();
             if ($portal) {
                 redirect(new moodle_url($portal));
             }
-            redirect($pageurl, get_string('byok_portalfailed', 'local_aiconfig'), null,
-                \core\output\notification::NOTIFY_ERROR);
+            redirect(
+                $pageurl,
+                get_string('byok_portalfailed', 'local_aiconfig'),
+                null,
+                \core\output\notification::NOTIFY_ERROR
+            );
             break;
         case 'check':
             $ok = licence::check();
-            redirect($pageurl, get_string($ok ? 'byok_checked' : 'byok_checkfailed', 'local_aiconfig'), null,
-                $ok ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING);
+            redirect(
+                $pageurl,
+                get_string($ok ? 'byok_checked' : 'byok_checkfailed', 'local_aiconfig'),
+                null,
+                $ok ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
             break;
         case 'savekey':
             $key = trim(required_param('licencekey', PARAM_RAW_TRIMMED));
@@ -74,8 +88,12 @@ if ($action !== '') {
             if ($payload) {
                 licence::check();
             }
-            redirect($pageurl, get_string($payload ? 'byok_keysaved' : 'byok_keyrefused', 'local_aiconfig'), null,
-                $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_ERROR);
+            redirect(
+                $pageurl,
+                get_string($payload ? 'byok_keysaved' : 'byok_keyrefused', 'local_aiconfig'),
+                null,
+                $payload ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_ERROR
+            );
             break;
         case 'removekey':
             unset_config('licencekey', 'local_aiconfig');

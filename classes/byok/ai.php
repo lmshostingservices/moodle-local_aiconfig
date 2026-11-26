@@ -225,7 +225,7 @@ class ai {
      */
     public static function strip_fences(string $text): string {
         $text = trim($text);
-        if (preg_match('/```(?:json)?\s*(.*?)```/s', $text, $m)) {
+        if (preg_match('/\x60{3}(?:json)?\s*(.*?)\x60{3}/s', $text, $m)) {
             $text = trim($m[1]);
         }
         $first = strcspn($text, '{[');

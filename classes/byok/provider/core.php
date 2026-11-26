@@ -168,8 +168,10 @@ class core {
                 return null;
             }
             // Moodle 4.5: one OpenAI provider configured in plugin settings.
-            if (\core_ai\manager::is_action_enabled('aiprovider_openai', $action)
-                    && ($key = (string) get_config('aiprovider_openai', 'apikey')) !== '') {
+            if (
+                \core_ai\manager::is_action_enabled('aiprovider_openai', $action)
+                    && ($key = (string) get_config('aiprovider_openai', 'apikey')) !== ''
+            ) {
                 return [
                     'vendor' => 'openai',
                     'name' => 'OpenAI',

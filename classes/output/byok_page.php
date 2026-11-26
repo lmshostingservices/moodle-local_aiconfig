@@ -96,8 +96,10 @@ class byok_page {
         }
 
         $keys = [];
-        foreach (['anthropic' => 'Anthropic', 'openai' => 'OpenAI', 'gemini' => 'Google (Gemini and voices)',
-                'elevenlabs' => 'ElevenLabs'] as $vendor => $label) {
+        foreach (
+            ['anthropic' => 'Anthropic', 'openai' => 'OpenAI', 'gemini' => 'Google (Gemini and voices)',
+                'elevenlabs' => 'ElevenLabs'] as $vendor => $label
+        ) {
             $saved = trim((string) get_config('local_aiconfig', 'key_' . $vendor));
             $keys[] = [
                 'vendor' => $vendor,
@@ -107,7 +109,7 @@ class byok_page {
             ];
         }
 
-        $usage = array_map(function($row) {
+        $usage = array_map(function ($row) {
             return [
                 'component' => $row->component,
                 'name' => get_string_manager()->string_exists('pluginname', $row->component)
@@ -117,7 +119,7 @@ class byok_page {
                 'calls' => (int) $row->calls,
             ];
         }, usage::recent(30));
-        usort($usage, function($a, $b) {
+        usort($usage, function ($a, $b) {
             return $b['calls'] <=> $a['calls'];
         });
 
@@ -169,7 +171,8 @@ class byok_page {
             'renews' => $status['renews'] ? userdate($status['renews'], $fmt) : '',
             'exp' => $status['exp'] ? userdate($status['exp'], $fmt) : '',
             'keyid' => $status['id'],
-            'checked' => $status['checked'] ? userdate($status['checked'], get_string('strftimedatetimeshort', 'langconfig')) : '',
+            'checked' => $status['checked'] ? userdate($status['checked'], get_string('strftimedatetimeshort', 'langconfig')) :
+                '',
             'services' => $services,
             'keys' => $keys,
             'voice_googletts' => (string) get_config('local_aiconfig', 'voice_googletts'),

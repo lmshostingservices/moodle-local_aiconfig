@@ -32,6 +32,9 @@ use local_aiconfig\byok\router;
 #[\PHPUnit\Framework\Attributes\CoversClass(router::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(ai::class)]
 final class byok_test extends \advanced_testcase {
+    /** @var string A Markdown code fence (three backticks). */
+    private const FENCE = "\x60\x60\x60";
+
     /** @var string Secret half of the test key pair. */
     protected $secret;
 
@@ -66,7 +69,7 @@ final class byok_test extends \advanced_testcase {
             'v' => 1, 'id' => 'lic_test', 'site' => licence::site_host(), 'plan' => 'all', 'learners' => 0,
             'aicredits' => false, 'byok' => true, 'products' => ['*'], 'sub' => 'sub_test', 'term' => 'year',
             'exp' => time() + 300 * DAYSECS, 'iat' => time(),
-        ], function($v) {
+        ], function ($v) {
             return $v !== null;
         }));
     }
@@ -79,7 +82,7 @@ final class byok_test extends \advanced_testcase {
      */
     protected function signed(array $data): string {
         $payload = json_encode($data);
-        $b64 = function(string $s): string {
+        $b64 = function (string $s): string {
             return rtrim(strtr(base64_encode($s), '+/', '-_'), '=');
         };
         return $b64($payload) . '.' . $b64(sodium_crypto_sign_detached($payload, $this->secret));
@@ -155,7 +158,7 @@ final class byok_test extends \advanced_testcase {
         set_config('licencekey', $this->key(), 'local_aiconfig');
         $renewed = $this->key(['exp' => time() + 700 * DAYSECS]);
         $calls = [];
-        $GLOBALS['local_aiconfig_licence_mock'] = function($path, $body, $key) use (&$calls, $renewed) {
+        $GLOBALS['local_aiconfig_licence_mock'] = function ($path, $body, $key) use (&$calls, $renewed) {
             $calls[] = [$path, $body, $key];
             return ['state' => 'active', 'exp' => time() + 700 * DAYSECS, 'key' => $renewed];
         };
@@ -165,7 +168,7 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame($renewed, get_config('local_aiconfig', 'licencekey'));
         $this->assertSame('active', licence::status()['state']);
 
-        $GLOBALS['local_aiconfig_licence_mock'] = function() {
+        $GLOBALS['local_aiconfig_licence_mock'] = function () {
             return ['state' => 'revoked'];
         };
         licence::check();
@@ -181,8 +184,11 @@ final class byok_test extends \advanced_testcase {
         $exp = time() - DAYSECS;
         set_config('licencekey', $this->key(['exp' => $exp]), 'local_aiconfig');
         $this->assertTrue(licence::allows('mod_example'), 'Inside the 14 days.');
-        set_config('licencecheck', json_encode(['id' => 'lic_test', 'state' => 'cancelled', 'graceuntil' => time() - 60]),
-            'local_aiconfig');
+        set_config(
+            'licencecheck',
+            json_encode(['id' => 'lic_test', 'state' => 'cancelled', 'graceuntil' => time() - 60]),
+            'local_aiconfig'
+        );
         $this->assertSame('expired', licence::status('mod_example')['reason']);
     }
 
@@ -192,7 +198,7 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame('rto', $url->get_param('tier'));
         $secret = get_config('local_aiconfig', 'claimsecret');
         $key = $this->key();
-        $GLOBALS['local_aiconfig_licence_mock'] = function($path, $body) use ($secret, $key) {
+        $GLOBALS['local_aiconfig_licence_mock'] = function ($path, $body) use ($secret, $key) {
             if ($path === '/v1/licence/claim') {
                 return $body['secret'] === $secret ? ['key' => $key, 'state' => 'active'] : null;
             }
@@ -219,9 +225,9 @@ final class byok_test extends \advanced_testcase {
         set_config('vendor_text', 'anthropic', 'local_aiconfig');
         set_config('key_anthropic', 'sk-test', 'local_aiconfig');
         $seen = [];
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen = ['url' => $url, 'headers' => $headers, 'body' => $body];
-            return ['content' => [['type' => 'text', 'text' => "```json\n{\"ok\":true}\n```"]]];
+            return ['content' => [['type' => 'text', 'text' => self::FENCE . "json\n{\"ok\":true}\n" . self::FENCE]]];
         };
         $out = ai::text('mod_example', 'You mark essays.', 'Mark this.', ['json' => true, 'maxtokens' => 100]);
         $this->assertSame('{"ok":true}', $out);
@@ -229,8 +235,11 @@ final class byok_test extends \advanced_testcase {
         $this->assertContains('x-api-key: sk-test', $seen['headers']);
         $this->assertStringStartsWith('You mark essays.', $seen['body']['system']);
         $this->assertSame(100, $seen['body']['max_tokens']);
-        $this->assertSame(1, (int) $DB->get_field('local_aiconfig_byok_usage', 'calls',
-            ['component' => 'mod_example', 'service' => 'text']));
+        $this->assertSame(1, (int) $DB->get_field(
+            'local_aiconfig_byok_usage',
+            'calls',
+            ['component' => 'mod_example', 'service' => 'text']
+        ));
     }
 
     public function test_images_route_through_vision_vendor(): void {
@@ -239,15 +248,17 @@ final class byok_test extends \advanced_testcase {
         set_config('vendor_vision', 'openai', 'local_aiconfig');
         set_config('key_openai', 'sk-open', 'local_aiconfig');
         $seen = [];
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen = $body;
             return ['choices' => [['message' => ['content' => 'A face.']]]];
         };
         $this->assertSame('A face.', ai::text('mod_example', '', 'Describe', [
             'images' => [['mime' => 'image/png', 'data' => 'PNGDATA']],
         ]));
-        $this->assertSame('data:image/png;base64,' . base64_encode('PNGDATA'),
-            $seen['messages'][0]['content'][1]['image_url']['url']);
+        $this->assertSame(
+            'data:image/png;base64,' . base64_encode('PNGDATA'),
+            $seen['messages'][0]['content'][1]['image_url']['url']
+        );
         $this->expectException(\moodle_exception::class);
         ai::text('mod_example', '', 'No text source chosen');
     }
@@ -258,7 +269,7 @@ final class byok_test extends \advanced_testcase {
         set_config('vendor_voice', 'googletts', 'local_aiconfig');
         set_config('key_gemini', 'g-key', 'local_aiconfig');
         $seen = [];
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen = $body;
             return ['audioContent' => base64_encode('MP3')];
         };
@@ -280,7 +291,7 @@ final class byok_test extends \advanced_testcase {
         set_config('key_openai', 'sk-open', 'local_aiconfig');
         set_config('key_elevenlabs', 'el-key', 'local_aiconfig');
         $seen = [];
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen[] = ['url' => $url, 'body' => $body];
             return 'OGGS';
         };
@@ -310,7 +321,7 @@ final class byok_test extends \advanced_testcase {
         $schema = ['name' => 'scenario plan', 'schema' => ['type' => 'object', 'additionalProperties' => false,
             'required' => ['title'], 'properties' => ['title' => ['type' => 'string']]]];
         $seen = [];
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen = $body;
             return ['stop_reason' => 'tool_use', 'content' => [['type' => 'tool_use', 'name' => 'scenario_plan',
                 'input' => ['title' => 'Isolation drill']]]];
@@ -320,16 +331,18 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame($schema['schema'], $seen['tools'][0]['input_schema']);
         $this->assertStringNotContainsString('Reply with valid JSON', $seen['system']);
         // The raw reply is what real calls get back: empty objects in a tool answer stay objects.
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body, $vendor, $raw) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body, $vendor, $raw) {
             $this->assertTrue($raw);
             return '{"stop_reason":"tool_use","content":[{"type":"tool_use","name":"scenario_plan",'
                 . '"input":{"title":"Drill","nodes":{"n9":{"choices":{}}},"tags":[]}}]}';
         };
-        $this->assertSame('{"title":"Drill","nodes":{"n9":{"choices":{}}},"tags":[]}',
-            ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema]));
+        $this->assertSame(
+            '{"title":"Drill","nodes":{"n9":{"choices":{}}},"tags":[]}',
+            ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema])
+        );
 
         set_config('vendor_text', 'openai', 'local_aiconfig');
-        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+        $GLOBALS['local_aiconfig_byok_mock'] = function ($url, $headers, $body) use (&$seen) {
             $seen = $body;
             return ['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '{"title":"Drill"}']]]];
         };
@@ -338,7 +351,7 @@ final class byok_test extends \advanced_testcase {
         $this->assertTrue($seen['response_format']['json_schema']['strict']);
         $this->assertSame('scenario_plan', $seen['response_format']['json_schema']['name']);
 
-        $GLOBALS['local_aiconfig_byok_mock'] = function() {
+        $GLOBALS['local_aiconfig_byok_mock'] = function () {
             return ['choices' => [['finish_reason' => 'length', 'message' => ['content' => '{"title":']]]];
         };
         $this->expectException(\moodle_exception::class);
@@ -346,7 +359,7 @@ final class byok_test extends \advanced_testcase {
     }
 
     public function test_strip_fences(): void {
-        $this->assertSame('{"a":1}', ai::strip_fences("Here you go:\n```json\n{\"a\":1}\n```"));
+        $this->assertSame('{"a":1}', ai::strip_fences("Here you go:\n" . self::FENCE . "json\n{\"a\":1}\n" . self::FENCE));
         $this->assertSame('[1,2]', ai::strip_fences('Sure! [1,2]'));
     }
 }

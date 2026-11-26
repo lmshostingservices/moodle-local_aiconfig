@@ -57,8 +57,14 @@ class gemini {
         if ($system !== '') {
             $body['systemInstruction'] = ['parts' => [['text' => $system]]];
         }
-        $data = http::post(self::BASE . rawurlencode($model) . ':generateContent', ['x-goog-api-key: ' . $key],
-            $body, 'Google Gemini', false, (int) ($options['timeout'] ?? 180));
+        $data = http::post(
+            self::BASE . rawurlencode($model) . ':generateContent',
+            ['x-goog-api-key: ' . $key],
+            $body,
+            'Google Gemini',
+            false,
+            (int) ($options['timeout'] ?? 180)
+        );
         $out = '';
         foreach ($data['candidates'][0]['content']['parts'] ?? [] as $part) {
             $out .= $part['text'] ?? '';

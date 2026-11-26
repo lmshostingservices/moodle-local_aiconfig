@@ -44,10 +44,15 @@ class before_top_of_body {
         if (!$status['byok'] || !$status['ingrace']) {
             return;
         }
-        $link = \html_writer::link(new \moodle_url('/local/aiconfig/byok.php'),
-            get_string('byok_grace_link', 'local_aiconfig'));
-        $text = get_string('byok_grace_banner', 'local_aiconfig',
-            userdate($status['until'], get_string('strftimedate', 'langconfig')));
+        $link = \html_writer::link(
+            new \moodle_url('/local/aiconfig/byok.php'),
+            get_string('byok_grace_link', 'local_aiconfig')
+        );
+        $text = get_string(
+            'byok_grace_banner',
+            'local_aiconfig',
+            userdate($status['until'], get_string('strftimedate', 'langconfig'))
+        );
         $hook->add_html(\html_writer::div($text . ' ' . $link, 'alert alert-warning m-3', ['role' => 'alert']));
     }
 }

@@ -159,8 +159,10 @@ class licence {
         $subscription = !empty($payload['sub']);
         // Subscription keys carry on through the grace period; the licence server may end it sooner.
         $until = $exp ? ($subscription ? $exp + self::GRACE_DAYS * DAYSECS : $exp) : 0;
-        if ($remote && $exp && in_array($result['state'], ['cancelled', 'expired', 'revoked'], true)
-                && !empty($remote['graceuntil'])) {
+        if (
+            $remote && $exp && in_array($result['state'], ['cancelled', 'expired', 'revoked'], true)
+                && !empty($remote['graceuntil'])
+        ) {
             $until = min($until, (int) $remote['graceuntil']);
         }
         // Keys from before Bring your own AI (no byok field) keep the own-AI access they always had.
