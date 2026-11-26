@@ -69,13 +69,21 @@ class ai {
      * @param string $system System / role instructions.
      * @param string $user The request.
      * @param array $options json (bool), maxtokens (int), temperature (float),
-     *                       images (list of ['mime' => 'image/png', 'data' => raw bytes]).
-     * @return string The text; with json, a JSON string with any code fences removed.
+     *                       images (list of ['mime' => 'image/png', 'data' => raw bytes]),
+     *                       schema (['name' => 'scenario', 'schema' => JSON Schema array]): structured output.
+     *                       OpenAI enforces it (strict json_schema), Anthropic answers through a forced tool
+     *                       with that input schema, Gemini and the Moodle AI subsystem get it in the prompt.
+     *                       Callers still validate the result.
+     * @return string The text; with json or schema, a JSON string with any code fences removed.
      */
     public static function text(string $component, string $system, string $user, array $options = []): string {
         $service = !empty($options['images']) ? router::VISION : router::TEXT;
         $source = self::require_source($component, $service);
-        $options += ['json' => false, 'maxtokens' => 4096, 'temperature' => null, 'images' => []];
+        $options += ['json' => false, 'maxtokens' => 4096, 'temperature' => null, 'images' => [], 'schema' => null];
+        if (!empty($options['schema'])) {
+            $options['json'] = true;
+            $options['schema'] += ['name' => 'result'];
+        }
         $started = microtime(true);
         if ($source === router::MOODLE) {
             $out = provider\core::text($system, $user, $options, $service);
@@ -189,6 +197,17 @@ class ai {
             'googletts_voice' => 'Chirp3-HD',
         ];
         return $defaults[$vendor . '_' . $kind] ?? '';
+    }
+
+    /**
+     * Prompt text asking for JSON in a schema, for providers that cannot enforce one.
+     *
+     * @param array $schema JSON Schema.
+     * @return string
+     */
+    public static function schema_instruction(array $schema): string {
+        return "Reply with one JSON value that matches this JSON Schema exactly (every required property, no others):\n"
+            . json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**

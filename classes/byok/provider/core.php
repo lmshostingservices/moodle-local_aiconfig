@@ -80,6 +80,9 @@ class core {
             throw new \moodle_exception('byok_notavailable', 'local_aiconfig', '', $service);
         }
         $prompt = trim($system . "\n\n" . $user);
+        if (!empty($options['schema'])) {
+            $prompt .= "\n\n" . \local_aiconfig\byok\ai::schema_instruction($options['schema']['schema']);
+        }
         if (!empty($options['json'])) {
             $prompt .= "\n\nReply with valid JSON only, with no text before or after it.";
         }

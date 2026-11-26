@@ -45,7 +45,7 @@ class anthropic {
             ]];
         }
         $content[] = ['type' => 'text', 'text' => $user];
-        if (!empty($options['json'])) {
+        if (!empty($options['json']) && empty($options['schema'])) {
             $system = trim($system . "\n\nReply with valid JSON only, with no text before or after it.");
         }
         $body = [
@@ -59,11 +59,27 @@ class anthropic {
         if (isset($options['temperature'])) {
             $body['temperature'] = (float) $options['temperature'];
         }
+        $tool = '';
+        if (!empty($options['schema'])) {
+            // Structured output: the answer comes back as the input of a tool the model must call.
+            $tool = openai::schema_name($options['schema']['name']);
+            $body['tools'] = [['name' => $tool, 'description' => 'Return the result in this exact shape.',
+                'input_schema' => $options['schema']['schema']]];
+            $body['tool_choice'] = ['type' => 'tool', 'name' => $tool];
+        }
         $data = http::post($options['endpoint'] ?? self::ENDPOINT, [
             'x-api-key: ' . $key, 'anthropic-version: 2023-06-01',
         ], $body, 'Anthropic');
+        if (!empty($options['json']) && ($data['stop_reason'] ?? '') === 'max_tokens') {
+            throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
+                'vendor' => 'Anthropic', 'detail' => 'the answer was cut off at the token limit',
+            ]);
+        }
         $out = '';
         foreach ($data['content'] ?? [] as $block) {
+            if ($tool !== '' && ($block['type'] ?? '') === 'tool_use' && ($block['name'] ?? '') === $tool) {
+                return json_encode($block['input'] ?? new \stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
             if (($block['type'] ?? '') === 'text') {
                 $out .= $block['text'];
             }

@@ -266,6 +266,42 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame('en-AU-Chirp3-HD-Kore', $seen['voice']['name']);
     }
 
+    public function test_schema_is_enforced_by_each_vendor(): void {
+        set_config('licencekey', $this->key(), 'local_aiconfig');
+        set_config('src_text', 'ownkey', 'local_aiconfig');
+        set_config('vendor_text', 'anthropic', 'local_aiconfig');
+        set_config('key_anthropic', 'sk-test', 'local_aiconfig');
+        set_config('key_openai', 'sk-open', 'local_aiconfig');
+        $schema = ['name' => 'scenario plan', 'schema' => ['type' => 'object', 'additionalProperties' => false,
+            'required' => ['title'], 'properties' => ['title' => ['type' => 'string']]]];
+        $seen = [];
+        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+            $seen = $body;
+            return ['stop_reason' => 'tool_use', 'content' => [['type' => 'tool_use', 'name' => 'scenario_plan',
+                'input' => ['title' => 'Isolation drill']]]];
+        };
+        $this->assertSame('{"title":"Isolation drill"}', ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema]));
+        $this->assertSame(['type' => 'tool', 'name' => 'scenario_plan'], $seen['tool_choice']);
+        $this->assertSame($schema['schema'], $seen['tools'][0]['input_schema']);
+        $this->assertStringNotContainsString('Reply with valid JSON', $seen['system']);
+
+        set_config('vendor_text', 'openai', 'local_aiconfig');
+        $GLOBALS['local_aiconfig_byok_mock'] = function($url, $headers, $body) use (&$seen) {
+            $seen = $body;
+            return ['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '{"title":"Drill"}']]]];
+        };
+        $this->assertSame('{"title":"Drill"}', ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema]));
+        $this->assertSame('json_schema', $seen['response_format']['type']);
+        $this->assertTrue($seen['response_format']['json_schema']['strict']);
+        $this->assertSame('scenario_plan', $seen['response_format']['json_schema']['name']);
+
+        $GLOBALS['local_aiconfig_byok_mock'] = function() {
+            return ['choices' => [['finish_reason' => 'length', 'message' => ['content' => '{"title":']]]];
+        };
+        $this->expectException(\moodle_exception::class);
+        ai::text('mod_example', 'Plan.', 'Go.', ['schema' => $schema]);
+    }
+
     public function test_strip_fences(): void {
         $this->assertSame('{"a":1}', ai::strip_fences("Here you go:\n```json\n{\"a\":1}\n```"));
         $this->assertSame('[1,2]', ai::strip_fences('Sure! [1,2]'));

@@ -12,6 +12,9 @@
 - Daily licence check, 14-day grace period, admin warning banner while payment is due.
 - Usage table: calls on your own AI per plugin over the last 30 days (no personal data).
 - API for LMS Labs plugins: `\local_aiconfig\byok\ai::uses_own_ai()`, `text()`, `image()`, `speech()`.
+- `text()` takes a `schema` option for structured output: enforced by OpenAI (strict JSON schema) and
+  Anthropic (forced tool), and given in the prompt to Gemini and Moodle AI. JSON answers cut off at the
+  token limit are reported as failures instead of being returned half-written.
 
 ## Version 1.0.16 (24 August 2026)
 

@@ -47,6 +47,9 @@ class gemini {
         if (!empty($options['json'])) {
             $config['responseMimeType'] = 'application/json';
         }
+        if (!empty($options['schema'])) {
+            $system = trim($system . "\n\n" . \local_aiconfig\byok\ai::schema_instruction($options['schema']['schema']));
+        }
         if (isset($options['temperature'])) {
             $config['temperature'] = (float) $options['temperature'];
         }

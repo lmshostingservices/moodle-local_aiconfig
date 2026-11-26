@@ -54,7 +54,11 @@ class openai {
             'messages' => $messages,
             'max_completion_tokens' => (int) ($options['maxtokens'] ?? 4096),
         ];
-        if (!empty($options['json'])) {
+        if (!empty($options['schema'])) {
+            $body['response_format'] = ['type' => 'json_schema', 'json_schema' => [
+                'name' => self::schema_name($options['schema']['name']), 'strict' => true, 'schema' => $options['schema']['schema'],
+            ]];
+        } else if (!empty($options['json'])) {
             $body['response_format'] = ['type' => 'json_object'];
             if (stripos($system . $user, 'json') === false) {
                 $body['messages'][0]['content'] = trim($system . "\n\nReply in JSON.");
@@ -65,11 +69,27 @@ class openai {
         }
         $data = http::post($options['endpoint'] ?? self::BASE . '/chat/completions', self::headers($key, $options),
             $body, 'OpenAI');
+        if (!empty($options['json']) && ($data['choices'][0]['finish_reason'] ?? '') === 'length') {
+            throw new \moodle_exception('byok_callfailed', 'local_aiconfig', '', (object) [
+                'vendor' => 'OpenAI', 'detail' => 'the answer was cut off at the token limit',
+            ]);
+        }
         $out = (string) ($data['choices'][0]['message']['content'] ?? '');
         if ($out === '') {
             http::empty_reply('OpenAI');
         }
         return $out;
+    }
+
+    /**
+     * A schema name OpenAI accepts.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function schema_name(string $name): string {
+        $name = preg_replace('/[^A-Za-z0-9_-]/', '_', $name);
+        return substr($name !== '' ? $name : 'result', 0, 64);
     }
 
     /**
