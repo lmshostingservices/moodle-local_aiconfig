@@ -37,11 +37,15 @@ class before_top_of_body {
         if (during_initial_install() || !isloggedin() || !is_siteadmin() || $PAGE->pagelayout !== 'admin') {
             return;
         }
-        if (trim((string) get_config('local_aiconfig', 'licencekey')) === '') {
-            return;
+        $status = null;
+        foreach (licence::all_keys() as $key) {
+            $candidate = licence::status(null, null, $key);
+            if ($candidate['byok'] && $candidate['ingrace']) {
+                $status = $candidate;
+                break;
+            }
         }
-        $status = licence::status();
-        if (!$status['byok'] || !$status['ingrace']) {
+        if ($status === null) {
             return;
         }
         $link = \html_writer::link(

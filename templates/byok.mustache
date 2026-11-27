@@ -38,7 +38,12 @@
         "keyid": "lic_7d2f",
         "subscription": true,
         "claimpending": false,
-        "tiers": [{"tier": "pro", "name": "Pro", "detail": "Up to 250 active learners a month", "checked": true}],
+        "price": "US$500 a year plus GST",
+        "hasplans": true,
+        "plans": [{"component": "mod_coursekit", "name": "Course Kit", "state": "active", "statelabel": "Active, renews 1 December 2027",
+            "badge": "success", "canbuy": false, "canmanage": true, "canremove": true, "highlight": true},
+            {"component": "quiz_aigrader", "name": "AI Grader", "state": "none", "statelabel": "Not subscribed",
+            "badge": "secondary", "canbuy": true, "canmanage": false, "canremove": false, "highlight": false}],
         "hasmoodleai": true,
         "moodleai": "https://example.com/admin/settings.php?section=aiprovider",
         "services": [{"service": "text", "name": "Text", "help": "Writing, marking and feedback.", "icon": "fa-align-left",
@@ -94,28 +99,6 @@
             {{/haskey}}
         </div>
         {{^active}}
-        <form method="post" action="{{url}}" class="lx-subscribe">
-            <input type="hidden" name="sesskey" value="{{sesskey}}">
-            <input type="hidden" name="action" value="subscribe">
-            <div class="lx-eyebrow" id="byok-tier-heading">{{#str}}byok_tier_heading, local_aiconfig{{/str}}</div>
-            <div class="lx-choices lx-tiers" role="radiogroup" aria-labelledby="byok-tier-heading">
-                {{#tiers}}
-                <div class="lx-choice">
-                    <input class="mds-choicebox-input visually-hidden" type="radio" name="tier" id="tier_{{tier}}" value="{{tier}}" {{#checked}}checked{{/checked}}>
-                    <label class="mds-choicebox" for="tier_{{tier}}">
-                        <i class="fa-solid fa-users lx-choice__icon" aria-hidden="true"></i>
-                        <span class="lx-choice__label">{{name}}</span>
-                        <span class="lx-choice__detail">{{detail}}</span>
-                    </label>
-                </div>
-                {{/tiers}}
-            </div>
-            <div class="lx-subscribe__actions">
-                <button type="submit" class="mds-btn btn btn-primary mds-btn--size-lg">
-                    <i class="fa-solid fa-bolt" aria-hidden="true"></i> {{#str}}byok_subscribe, local_aiconfig{{/str}}
-                </button>
-            </div>
-        </form>
         {{#claimpending}}
         <form method="post" action="{{url}}" class="lx-claim">
             <input type="hidden" name="sesskey" value="{{sesskey}}">
@@ -125,6 +108,48 @@
         {{/claimpending}}
         {{/active}}
     </section>
+
+    {{#hasplans}}
+    <section class="lx-plans" aria-labelledby="byok-plans-heading">
+        <div class="lx-section-head">
+            <h3 id="byok-plans-heading" class="lx-section-title">{{#str}}byok_plans_heading, local_aiconfig{{/str}}</h3>
+            <p class="lx-section-desc">{{#str}}byok_plans_desc, local_aiconfig{{/str}}</p>
+        </div>
+        <ul class="lx-plan-list">
+            {{#plans}}
+            <li class="lx-card lx-plan{{#highlight}} lx-plan--highlight{{/highlight}}" data-component="{{component}}">
+                <div class="lx-plan__body">
+                    <div class="lx-plan__name">{{name}}</div>
+                    <div class="lx-plan__price">{{price}}</div>
+                    <span class="mds-badge badge mds-badge--pill mds-badge--subtle bg-{{badge}}-subtle text-{{badge}}-emphasis">{{statelabel}}</span>
+                </div>
+                <div class="lx-plan__actions">
+                    {{#canbuy}}
+                    <form method="post" action="{{url}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="action" value="subscribe">
+                        <input type="hidden" name="component" value="{{component}}">
+                        <button type="submit" class="mds-btn btn btn-primary mds-btn--size-md">
+                            <i class="fa-solid fa-bolt" aria-hidden="true"></i> {{#str}}byok_subscribe, local_aiconfig{{/str}}<span class="visually-hidden sr-only"> {{name}}</span>
+                        </button>
+                    </form>
+                    {{/canbuy}}
+                    {{#canmanage}}
+                    <form method="post" action="{{url}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="action" value="manage">
+                        <input type="hidden" name="component" value="{{component}}">
+                        <button type="submit" class="mds-btn btn btn-secondary mds-btn--size-md">
+                            <i class="fa-solid fa-credit-card" aria-hidden="true"></i> {{#str}}byok_manage, local_aiconfig{{/str}}<span class="visually-hidden sr-only"> {{name}}</span>
+                        </button>
+                    </form>
+                    {{/canmanage}}
+                </div>
+            </li>
+            {{/plans}}
+        </ul>
+    </section>
+    {{/hasplans}}
 
     {{#ingrace}}
     <div class="mds-alert alert alert-warning" role="alert">
