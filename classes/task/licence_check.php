@@ -41,7 +41,7 @@ class licence_check extends \core\task\scheduled_task {
      * @return void
      */
     public function execute() {
-        if (trim((string) get_config('local_aiconfig', 'licencekey')) === '') {
+        if (!licence::all_keys()) {
             mtrace('No Bring your own AI licence installed.');
             return;
         }

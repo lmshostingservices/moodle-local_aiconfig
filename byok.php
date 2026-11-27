@@ -50,7 +50,11 @@ if ($action !== '') {
     require_sesskey();
     switch ($action) {
         case 'subscribe':
-            redirect(licence::checkout_url(optional_param('tier', 'pro', PARAM_ALPHA)));
+            $component = required_param('component', PARAM_COMPONENT);
+            if (!in_array($component, licence::offered_plugins([$component]), true)) {
+                throw new moodle_exception('invalidparameter', 'debug');
+            }
+            redirect(licence::checkout_url($component));
             break;
         case 'claim':
             $payload = licence::claim();
@@ -62,7 +66,8 @@ if ($action !== '') {
             );
             break;
         case 'manage':
-            $portal = licence::portal_url();
+            $component = optional_param('component', '', PARAM_COMPONENT);
+            $portal = licence::portal_url($component === '' ? null : $component);
             if ($portal) {
                 redirect(new moodle_url($portal));
             }
@@ -96,8 +101,8 @@ if ($action !== '') {
             );
             break;
         case 'removekey':
-            unset_config('licencekey', 'local_aiconfig');
-            unset_config('licencecheck', 'local_aiconfig');
+            $component = optional_param('component', '', PARAM_COMPONENT);
+            licence::remove($component === '' ? null : $component);
             redirect($pageurl, get_string('byok_keyremoved', 'local_aiconfig'));
             break;
         case 'save':
@@ -133,5 +138,7 @@ $PAGE->set_title(get_string('byok_title', 'local_aiconfig'));
 $PAGE->set_heading(get_string('byok_title', 'local_aiconfig'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_aiconfig/byok', \local_aiconfig\output\byok_page::export($OUTPUT));
+// A plugin's own settings can link here with ?plugin=<component> to show its licence first.
+$forplugin = optional_param('plugin', '', PARAM_COMPONENT);
+echo $OUTPUT->render_from_template('local_aiconfig/byok', \local_aiconfig\output\byok_page::export($OUTPUT, $forplugin));
 echo $OUTPUT->footer();

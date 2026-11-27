@@ -111,17 +111,48 @@
     margin: 0;
 }
 
-.local-aiconfig-byok .lx-subscribe {
-    flex-basis: 100%;
+/* Plugin plans: one yearly licence per plugin */
+.local-aiconfig-byok .lx-plan-list {
+    list-style: none;
     margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
 }
-.local-aiconfig-byok .lx-tiers {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    margin: 8px 0 16px;
-}
-.local-aiconfig-byok .lx-subscribe__actions {
+.local-aiconfig-byok .lx-plan {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 16px;
+    padding: 16px 20px;
+}
+.local-aiconfig-byok .lx-plan--highlight {
+    border-color: var(--byok-blue);
+    box-shadow: var(--lx-shadow-sm), 0 0 0 1px var(--byok-blue);
+}
+.local-aiconfig-byok .lx-plan__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    min-width: 0;
+}
+.local-aiconfig-byok .lx-plan__name {
+    font-weight: 600;
+    color: var(--byok-text);
+}
+.local-aiconfig-byok .lx-plan__price {
+    color: var(--byok-muted);
+    font-variant-numeric: tabular-nums;
+}
+.local-aiconfig-byok .lx-plan__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.local-aiconfig-byok .lx-plan__actions form {
+    margin: 0;
 }
 .local-aiconfig-byok .lx-claim {
     flex-basis: 100%;

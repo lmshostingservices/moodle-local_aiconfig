@@ -43,12 +43,16 @@ their own service requests.
 
 GNU GPL v3 or later.
 
-## Bring your own AI (1.1.0)
+## Bring your own AI (1.1.0, per-plugin plans from 1.2.0)
 
 Site administration > Plugins > Local plugins > **Bring your own AI**.
 
-With a yearly LMS Labs "Bring your own AI" licence, every LMS Labs plugin can run its AI on your own
-providers instead of LMS Labs credits. Pick a source for each kind of AI:
+With a Bring your own AI plan, an LMS Labs plugin runs its AI on your own providers instead of LMS Labs
+credits. Each plugin has one yearly plan: **US$500 a year plus GST**, renewed through Stripe, with no tiers
+and no bundles. Subscribe to a plugin from this page; its key installs itself after payment, and the keys for
+several plugins sit side by side. LMS Labs credits stay a one-off purchase with no subscription.
+
+Pick a source for each kind of AI:
 
 | Kind | LMS Labs credits | Moodle AI (4.5+) | Your own key |
 |---|---|---|---|

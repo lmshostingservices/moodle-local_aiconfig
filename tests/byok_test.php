@@ -193,9 +193,9 @@ final class byok_test extends \advanced_testcase {
     }
 
     public function test_claim_after_checkout(): void {
-        $url = licence::checkout_url('rto');
-        $this->assertSame('all', $url->get_param('product'));
-        $this->assertSame('rto', $url->get_param('tier'));
+        $url = licence::checkout_url('local_aiconfig');
+        $this->assertSame('local_aiconfig', $url->get_param('product'));
+        $this->assertNull($url->get_param('tier'), 'One flat yearly plan per plugin, no tiers.');
         $secret = get_config('local_aiconfig', 'claimsecret');
         $key = $this->key();
         $GLOBALS['local_aiconfig_licence_mock'] = function ($path, $body) use ($secret, $key) {
@@ -208,6 +208,45 @@ final class byok_test extends \advanced_testcase {
         $this->assertSame($key, get_config('local_aiconfig', 'licencekey'));
         $this->assertFalse(get_config('local_aiconfig', 'claimsecret'));
         unset($GLOBALS['local_aiconfig_licence_mock']);
+    }
+
+    public function test_plugin_keys_sit_side_by_side(): void {
+        $coach = $this->key(['id' => 'lic_coach', 'plan' => 'plugin', 'products' => ['local_lmslabs_coach']]);
+        $example = $this->key(['id' => 'lic_ex', 'plan' => 'plugin', 'products' => ['mod_example']]);
+        $this->assertNotNull(licence::install($coach));
+        $this->assertNotNull(licence::install($example));
+        $this->assertFalse(get_config('local_aiconfig', 'licencekey'), 'Single-plugin keys never replace the site-wide key.');
+        $this->assertSame(['local_lmslabs_coach' => $coach, 'mod_example' => $example], licence::plugin_keys());
+        $this->assertCount(2, licence::all_keys());
+        $this->assertTrue(licence::allows('mod_example'));
+        $this->assertTrue(licence::allows('local_lmslabs_coach'));
+        $this->assertFalse(licence::allows('mod_other'), 'A plugin key covers only its own plugin.');
+        $this->assertSame('lic_ex', licence::status('mod_example')['id']);
+        $this->assertSame('plugin', licence::status('mod_example')['plan']);
+
+        // The daily check sends every key and keeps each answer by licence id.
+        $sent = [];
+        $GLOBALS['local_aiconfig_licence_mock'] = function ($path, $body, $key) use (&$sent) {
+            $sent[] = $key;
+            $id = licence::verify($key)['id'];
+            return ['state' => $id === 'lic_ex' ? 'revoked' : 'active', 'exp' => time() + 300 * DAYSECS];
+        };
+        $this->assertTrue(licence::check());
+        $this->assertEqualsCanonicalizing([$coach, $example], $sent);
+        $this->assertSame('revoked', licence::status('mod_example')['reason']);
+        $this->assertTrue(licence::allows('local_lmslabs_coach'), 'One revoked plugin key leaves the others alone.');
+
+        licence::remove('mod_example');
+        $this->assertSame(['local_lmslabs_coach' => $coach], licence::plugin_keys());
+        $this->assertSame('nokey', licence::status('mod_example')['reason']);
+    }
+
+    public function test_plugins_offered_for_subscription_are_installed(): void {
+        $offered = licence::offered_plugins(['mod_assign', 'mod_notinstalled', 'not a component']);
+        $this->assertContains('mod_assign', $offered);
+        $this->assertNotContains('mod_notinstalled', $offered);
+        $this->assertNotContains('not a component', $offered);
+        $this->assertSame(array_values(array_unique($offered)), $offered);
     }
 
     public function test_voice_cannot_use_moodle_ai_and_video_is_credits_only(): void {

@@ -1,5 +1,15 @@
 # AI Grader Central Config Changelog
 
+## Version 1.2.0 (27 November 2026)
+
+### One yearly plan per plugin
+- Bring your own AI is now sold per plugin: one flat plan at US$500 a year plus GST for each LMS Labs
+  plugin, with no tiers and no bundles. The page lists each installed LMS Labs plugin with its own
+  Subscribe and Manage buttons.
+- Keys for several plugins are kept side by side. The daily check, renewals, grace banner and billing
+  portal work per key, and removing one plugin's key leaves the others alone.
+- Site-wide keys bought before 1.2.0 keep working until they end.
+
 ## Version 1.1.0 (26 November 2026)
 
 ### Bring your own AI

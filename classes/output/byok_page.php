@@ -51,9 +51,10 @@ class byok_page {
      * Build the context.
      *
      * @param \renderer_base $output
+     * @param string $forplugin A plugin component to list first (the plugin that linked here), or ''.
      * @return array
      */
-    public static function export(\renderer_base $output): array {
+    public static function export(\renderer_base $output, string $forplugin = ''): array {
         $status = licence::status();
         $sesskey = sesskey();
         $url = (new \moodle_url('/local/aiconfig/byok.php'))->out(false);
@@ -136,16 +137,7 @@ class byok_page {
         } else {
             $statekey = $status['key'] ? $status['reason'] : 'none';
         }
-        $tiers = [];
-        foreach (licence::TIERS as $tier => $learners) {
-            $tiers[] = [
-                'tier' => $tier,
-                'name' => get_string('byok_tier_' . $tier, 'local_aiconfig'),
-                'detail' => $learners ? get_string('byok_tier_learners', 'local_aiconfig', $learners)
-                    : get_string('byok_tier_unlimited', 'local_aiconfig'),
-                'checked' => $tier === 'pro',
-            ];
-        }
+        $plans = self::plans($forplugin, $fmt);
         $claimpending = (string) get_config('local_aiconfig', 'claimsecret') !== '';
         return [
             'url' => $url,
@@ -162,11 +154,14 @@ class byok_page {
                 ?? 'secondary',
             'active' => $status['byok'],
             'ingrace' => $status['byok'] && $statekey !== 'active',
-            'subscription' => $status['subscription'],
-            'tiers' => $tiers,
+            'subscription' => $status['subscription'] && trim((string) get_config('local_aiconfig', 'licencekey')) !== '',
+            'plans' => $plans,
+            'hasplans' => !empty($plans),
+            'price' => get_string('byok_plugin_price', 'local_aiconfig', licence::PLUGIN_PRICE_USD),
+            'sitewide' => trim((string) get_config('local_aiconfig', 'licencekey')) !== '',
             'claimpending' => $claimpending && !$status['byok'],
             'haskey' => $status['key'],
-            'plan' => $status['plan'] === '' ? '' : ucfirst($status['plan']),
+            'plan' => self::plan_label($status),
             'allplugins' => in_array('*', $status['products'], true),
             'renews' => $status['renews'] ? userdate($status['renews'], $fmt) : '',
             'exp' => $status['exp'] ? userdate($status['exp'], $fmt) : '',
@@ -183,6 +178,49 @@ class byok_page {
             'moodleai' => (new \moodle_url('/admin/settings.php', ['section' => 'aiprovider']))->out(false),
             'hasmoodleai' => class_exists('\core_ai\manager'),
         ];
+    }
+
+    /**
+     * One card per plugin that can have its own yearly Bring your own AI licence.
+     *
+     * @param string $forplugin Plugin to list first, or ''.
+     * @param string $fmt Date format.
+     * @return array
+     */
+    protected static function plans(string $forplugin, string $fmt): array {
+        $components = licence::offered_plugins($forplugin !== '' ? [$forplugin] : []);
+        $own = licence::plugin_keys();
+        $plans = [];
+        foreach ($components as $component) {
+            $status = isset($own[$component]) ? licence::status($component, null, $own[$component]) : null;
+            $covered = !$status && licence::status($component)['byok'];
+            if ($status && $status['byok']) {
+                $state = $status['ingrace'] ? 'grace' : ($status['ending'] ? 'ending' : 'active');
+            } else if ($status) {
+                $state = $status['reason'] ?: 'expired';
+            } else {
+                $state = $covered ? 'covered' : 'none';
+            }
+            $date = $status && $status['renews'] ? $status['renews'] : ($status['until'] ?? 0);
+            $plans[] = [
+                'component' => $component,
+                'name' => get_string_manager()->string_exists('pluginname', $component)
+                    ? get_string('pluginname', $component) : $component,
+                'state' => $state,
+                'statelabel' => get_string('byok_planstate_' . (in_array($state, ['active', 'grace', 'ending', 'covered', 'none'])
+                    ? $state : 'lapsed'), 'local_aiconfig', $date ? userdate($date, $fmt) : ''),
+                'badge' => ['active' => 'success', 'grace' => 'warning', 'ending' => 'warning', 'covered' => 'info',
+                    'none' => 'secondary'][$state] ?? 'danger',
+                'canbuy' => !$covered && (!$status || !$status['byok']),
+                'canmanage' => $status && !empty($status['subscription']),
+                'canremove' => $status !== null,
+                'highlight' => $component === $forplugin,
+            ];
+        }
+        usort($plans, function ($a, $b) {
+            return [$b['highlight'], $a['name']] <=> [$a['highlight'], $b['name']];
+        });
+        return $plans;
     }
 
     /**
@@ -211,5 +249,22 @@ class byok_page {
         $native = $service === router::IMAGE ? null : core::native($service);
         return $native ? get_string('byok_detail_moodle_native', 'local_aiconfig', s($native['name']))
             : get_string('byok_detail_moodle', 'local_aiconfig');
+    }
+
+    /**
+     * A readable name for the key's plan: the plugin's name for a single-plugin key, else the legacy plan name.
+     *
+     * @param array $status From licence::status().
+     * @return string
+     */
+    protected static function plan_label(array $status): string {
+        if ($status['plan'] === 'plugin' && count($status['products']) === 1) {
+            $component = (string) reset($status['products']);
+            if (\core_component::get_component_directory($component) !== null) {
+                return get_string('pluginname', $component);
+            }
+            return $component;
+        }
+        return $status['plan'] === '' ? '' : ucfirst($status['plan']);
     }
 }
