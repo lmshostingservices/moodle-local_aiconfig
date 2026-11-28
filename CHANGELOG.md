@@ -1,5 +1,10 @@
 # AI Grader Central Config Changelog
 
+## Version 1.2.1 (28 November 2026)
+
+- Bring your own AI licences are now signed with the LMS Labs production key and checked at https://lms-labs.com/licence. Sites using the old default address move to the new one on upgrade; a custom address is left alone.
+- The Bring your own AI page offers every LMS Labs plugin that can use your own AI, when it is installed.
+
 ## Version 1.2.0 (27 November 2026)
 
 ### One yearly plan per plugin
