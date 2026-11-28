@@ -39,16 +39,19 @@ namespace local_aiconfig\byok;
  */
 class licence {
     /**
-     * Licence signing public key (raw Ed25519, base64). This is the DEVELOPMENT key shared with the
-     * Completion Coach. Release builds swap in the production key; its private half never enters a repo.
+     * Licence signing public key (raw Ed25519, base64): the LMS Labs production key, shared with the Completion
+     * Coach. The licence server at lms-labs.com/licence made it and keeps the private half; it never enters a repo.
      */
-    const PUBLIC_KEY = 'xPMpxlKyHZmpIh9wuwG8lqGYGItAwYDKxx3gG80Daos=';
+    const PUBLIC_KEY = 'rgpoCOfDQ8FVFOSbs4yeq5U1L4krYixb4Q/8FHinTIw=';
 
     /** Days a site keeps BYOK after the paid period ends, while renewal or payment catches up. */
     const GRACE_DAYS = 14;
 
     /** Default licence server. */
-    const DEFAULT_URL = 'https://licence.lms-labs.com';
+    const DEFAULT_URL = 'https://lms-labs.com/licence';
+
+    /** Licence server addresses from earlier releases, moved to DEFAULT_URL on upgrade. */
+    const OLD_URLS = ['https://licence.lms-labs.com', 'https://licence.lms-labs.com/'];
 
     /** States the licence server reports. */
     const STATES = ['pending', 'active', 'past_due', 'grace', 'cancelled', 'expired', 'revoked'];
@@ -60,7 +63,14 @@ class licence {
     const PLUGIN_PRICE_USD = 500;
 
     /** LMS Labs plugins offered on the Bring your own AI page when installed (others appear once they use it). */
-    const PLUGINS = ['mod_coursekit', 'quiz_aigrader', 'local_lmslabs_coach'];
+    const PLUGINS = [
+        'local_lmslabs_coach', 'mod_coursekit', 'quiz_aigrader', 'format_aicourse', 'local_aiquizmaker',
+        'local_aiquizremedial', 'local_ailogin', 'local_rtocompliance', 'local_trainingmatrix', 'mod_aiactivities',
+        'mod_aianatomy', 'mod_aibranchedscenario', 'mod_aiknowledgecheck', 'mod_ailanguageteacher', 'mod_aiscience',
+        'mod_aisoftskills', 'mod_aispeakwrite', 'mod_aivideoactivity', 'mod_contentcreator', 'mod_courseinfo',
+        'mod_learningmapping', 'mod_productexplainer', 'mod_slideshow', 'mod_smartworkbook', 'mod_verifyid',
+        'mod_visuallearning',
+    ];
 
     /**
      * Decode and verify a key.

@@ -50,5 +50,14 @@ function xmldb_local_aiconfig_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026112600, 'local', 'aiconfig');
     }
 
+    if ($oldversion < 2026112800) {
+        // The licence server moved into lms-labs.com. Sites still on the old default follow it; a custom address stays.
+        $url = (string) get_config('local_aiconfig', 'licenceurl');
+        if ($url === '' || in_array($url, \local_aiconfig\byok\licence::OLD_URLS, true)) {
+            set_config('licenceurl', \local_aiconfig\byok\licence::DEFAULT_URL, 'local_aiconfig');
+        }
+        upgrade_plugin_savepoint(true, 2026112800, 'local', 'aiconfig');
+    }
+
     return true;
 }
